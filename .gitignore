@@ -1,0 +1,8 @@
+node_modules/
+build/
+# dist/ is included to support deployment on legacy CPUs (e.g. AMD Phenom) without running esbuild locally
+coverage/
+.DS_Store
+*.log
+.env*
+!.env.example
