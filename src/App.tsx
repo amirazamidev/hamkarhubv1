@@ -2,10 +2,10 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Header } from './components/Header';
 import { UnifiedPortalView } from './components/UnifiedPortalView';
 import { MembersList } from './components/MembersList';
-import { AmenitiesPanel } from './components/AmenitiesPanel';
-import { MikrotikIntegrationGuide } from './components/MikrotikIntegrationGuide';
+import { CafeView } from './components/CafeView';
 import { HotspotLoginModal } from './components/HotspotLoginModal';
 import { CheckInModal } from './components/CheckInModal';
+import { UserAccountModal } from './components/UserAccountModal';
 import { AdminPanel } from './components/AdminPanel';
 import {
   Channel,
@@ -17,21 +17,23 @@ import {
   HotspotSession,
   CafeteriaInfo,
   StaffMember,
+  AppContentConfig,
 } from './types';
-import { Wifi, ShieldCheck, Radio } from 'lucide-react';
+import { Radio } from 'lucide-react';
 
 const STORAGE_KEY_USER = 'hamkar_user_profile';
 const STORAGE_KEY_SESSION = 'hamkar_hotspot_session';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<'portal' | 'members' | 'amenities' | 'mikrotik' | 'admin'>('portal');
+  const [activeTab, setActiveTab] = useState<'portal' | 'members' | 'cafe' | 'admin'>('portal');
   const [activeChannelId, setActiveChannelId] = useState<string>('general');
 
   // Modals
   const [isHotspotModalOpen, setIsHotspotModalOpen] = useState(false);
   const [isCheckInOpen, setIsCheckInOpen] = useState(false);
+  const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
 
-  // Initial channels seed so view never renders with empty channels
+  // Initial channels seed
   const INITIAL_CHANNELS: Channel[] = [
     {
       id: 'general',
@@ -72,11 +74,20 @@ export default function App() {
   const [members, setMembers] = useState<Member[]>([]);
   const [amenities, setAmenities] = useState<SpaceAmenity[]>([]);
   const [notices, setNotices] = useState<NoticeItem[]>([]);
+  const [appContent, setAppContent] = useState<AppContentConfig>({
+    hubTitle: 'همکار هاب',
+    hubSubtitle: 'شبکه محلی و کپتیو پورتال وای‌فای فضای کار اشتراکی',
+    welcomeNotice: 'به اینترنت و شبکه اختصاصی فضای کار اشتراکی خوش آمدید!',
+    portalDescription: 'سامانه جامع اطلاع‌رسانی، چت داخلی، سفارش کافه و اتصال به اینترنت پرسرعت میکروتیک',
+    wifiRules: '۱. استفاده منصفانه از حجم اینترنت ۲. رعایت سکوت در سالن متمرکز ۳. استفاده از فون‌باکس هنگام تماس',
+    phoneContact: 'میز پذیرش - داخلی ۱۰۱',
+    locationAddress: 'سالن اصلی فضای کار اشتراکی',
+  });
   const [cafeteria, setCafeteria] = useState<CafeteriaInfo>({
     title: 'قهوه تازه، چای دمی و گپ دوستانه',
     subtitle: 'کافه‌تریا و استراحت',
     description:
-      'اسپرسوساز حرفه‌ای در آشپزخانه طبقه همکف در دسترس است. برای ثبت سفارش ناهار جمعی، هر روز تا ساعت ۱۲ در کانال #کافه-و-سفارش-ناهار پیام بگذارید تا از تخفیف ویژه همکاران استفاده کنید.',
+      'اسپرسوساز حرفه‌ای در آشپزخانه طبقه همکف در دسترس است. سفارشات قهوه، دمنوش و خوراکی را می‌توانید از تب کافه منو ثبت فرمایید.',
     imageUrl: '/src/assets/images/coworking_lounge_cafe_1794330975977.jpg',
     footerNote: 'چای و دمنوش رایگان در تمام طول روز مهیاست.',
   });
@@ -154,19 +165,21 @@ export default function App() {
         configRes,
         cafeteriaRes,
         staffRes,
+        contentRes,
       ] = await Promise.all([
-        fetch('/api/status').then((r) => r.json()),
-        fetch('/api/channels').then((r) => r.json()),
-        fetch('/api/messages').then((r) => r.json()),
-        fetch('/api/members').then((r) => r.json()),
-        fetch('/api/amenities').then((r) => r.json()),
-        fetch('/api/notices').then((r) => r.json()),
-        fetch('/api/hotspot/config').then((r) => r.json()),
-        fetch('/api/cafeteria').then((r) => r.json()),
-        fetch('/api/staff').then((r) => r.json()),
+        fetch('/api/status').then((r) => r.json()).catch(() => null),
+        fetch('/api/channels').then((r) => r.json()).catch(() => null),
+        fetch('/api/messages').then((r) => r.json()).catch(() => null),
+        fetch('/api/members').then((r) => r.json()).catch(() => null),
+        fetch('/api/amenities').then((r) => r.json()).catch(() => null),
+        fetch('/api/notices').then((r) => r.json()).catch(() => null),
+        fetch('/api/hotspot/config').then((r) => r.json()).catch(() => null),
+        fetch('/api/cafeteria').then((r) => r.json()).catch(() => null),
+        fetch('/api/staff').then((r) => r.json()).catch(() => null),
+        fetch('/api/admin/app-content').then((r) => r.json()).catch(() => null),
       ]);
 
-      if (statusRes.clientIp) setClientIp(statusRes.clientIp);
+      if (statusRes?.clientIp) setClientIp(statusRes.clientIp);
       if (channelsRes) setChannels(channelsRes);
       if (messagesRes) setMessages(messagesRes);
       if (membersRes) setMembers(membersRes);
@@ -175,6 +188,7 @@ export default function App() {
       if (configRes) setConfig(configRes);
       if (cafeteriaRes) setCafeteria(cafeteriaRes);
       if (staffRes) setStaff(staffRes);
+      if (contentRes && contentRes.hubTitle) setAppContent(contentRes);
     } catch (err) {
       console.error('Failed to load initial data:', err);
     }
@@ -297,30 +311,21 @@ export default function App() {
         }
       });
 
-      eventSource.addEventListener('channel_updated', (e) => {
-        try {
-          const updated = JSON.parse(e.data);
-          setChannels((prev) => prev.map((c) => (c.id === updated.id ? updated : c)));
-        } catch (err) {
-          console.error('SSE channel update parse error:', err);
-        }
-      });
-
-      eventSource.addEventListener('channel_deleted', (e) => {
-        try {
-          const { id } = JSON.parse(e.data);
-          setChannels((prev) => prev.filter((c) => c.id !== id));
-        } catch (err) {
-          console.error('SSE channel delete parse error:', err);
-        }
-      });
-
       eventSource.addEventListener('config_updated', (e) => {
         try {
           const newConfig = JSON.parse(e.data);
           setConfig(newConfig);
         } catch (err) {
           console.error('SSE config parse error:', err);
+        }
+      });
+
+      eventSource.addEventListener('app_content_updated', (e) => {
+        try {
+          const newContent = JSON.parse(e.data);
+          setAppContent(newContent);
+        } catch (err) {
+          console.error('SSE app_content parse error:', err);
         }
       });
 
@@ -406,46 +411,6 @@ export default function App() {
     }
   };
 
-  // Update Amenity Status
-  const handleUpdateAmenity = async (id: string, status: SpaceAmenity['status'], statusText: string) => {
-    try {
-      const res = await fetch('/api/amenities/update', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          id,
-          status,
-          statusText,
-          updatedBy: currentMember.name,
-        }),
-      });
-      const data = await res.json();
-      setAmenities((prev) => prev.map((a) => (a.id === id ? data : a)));
-    } catch (err) {
-      console.error('Error updating amenity:', err);
-    }
-  };
-
-  // Add Notice
-  const handleAddNotice = async (title: string, content: string, priority: 'normal' | 'urgent') => {
-    try {
-      const res = await fetch('/api/notices', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title,
-          content,
-          author: currentMember.name,
-          priority,
-        }),
-      });
-      const data = await res.json();
-      setNotices((prev) => [data, ...prev]);
-    } catch (err) {
-      console.error('Error adding notice:', err);
-    }
-  };
-
   // Update MikroTik Hotspot Config
   const handleUpdateConfig = async (newConfig: Partial<HotspotConfig>) => {
     try {
@@ -460,6 +425,23 @@ export default function App() {
       }
     } catch (err) {
       console.error('Error updating config:', err);
+    }
+  };
+
+  // Update App Content
+  const handleUpdateAppContent = async (newContent: Partial<AppContentConfig>) => {
+    try {
+      const res = await fetch('/api/admin/app-content', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newContent),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setAppContent(data.appContent);
+      }
+    } catch (err) {
+      console.error('Error updating app content:', err);
     }
   };
 
@@ -482,6 +464,7 @@ export default function App() {
     setSession(cleared);
     localStorage.removeItem(STORAGE_KEY_SESSION);
     setIsHotspotModalOpen(false);
+    setIsAccountModalOpen(false);
   };
 
   // Direct chat helper from member list
@@ -501,7 +484,9 @@ export default function App() {
         setActiveTab={setActiveTab}
         session={session}
         onOpenHotspotModal={() => setIsHotspotModalOpen(true)}
+        onOpenAccountModal={() => setIsAccountModalOpen(true)}
         onlineCount={onlineCount}
+        hubTitle={appContent.hubTitle}
       />
 
       {/* Network Status Top Strip */}
@@ -552,6 +537,8 @@ export default function App() {
             amenities={amenities}
             notices={notices}
             onlineCount={onlineCount}
+            onOpenAccountModal={() => setIsAccountModalOpen(true)}
+            appContent={appContent}
           />
         )}
 
@@ -563,23 +550,11 @@ export default function App() {
           />
         )}
 
-        {activeTab === 'amenities' && (
-          <AmenitiesPanel
+        {activeTab === 'cafe' && (
+          <CafeView
+            currentUserName={session.isConnected ? session.username : currentMember.name}
+            currentUserDesk={currentMember.desk}
             amenities={amenities}
-            notices={notices}
-            cafeteria={cafeteria}
-            staff={staff}
-            onUpdateAmenity={handleUpdateAmenity}
-            onAddNotice={handleAddNotice}
-            currentMember={currentMember}
-          />
-        )}
-
-        {activeTab === 'mikrotik' && (
-          <MikrotikIntegrationGuide
-            config={config}
-            onUpdateConfig={handleUpdateConfig}
-            clientIp={clientIp}
           />
         )}
 
@@ -591,11 +566,29 @@ export default function App() {
             cafeteria={cafeteria}
             staff={staff}
             config={config}
+            appContent={appContent}
             onRefreshData={loadData}
             onUpdateConfig={handleUpdateConfig}
+            onUpdateAppContent={handleUpdateAppContent}
+            clientIp={clientIp}
           />
         )}
       </main>
+
+      {/* User Account / Self-Service Modal */}
+      <UserAccountModal
+        isOpen={isAccountModalOpen}
+        onClose={() => setIsAccountModalOpen(false)}
+        session={session}
+        onLogout={handleLogout}
+        onSessionUpdate={(updated) => {
+          setSession((prev) => {
+            const next = { ...prev, ...updated };
+            localStorage.setItem(STORAGE_KEY_SESSION, JSON.stringify(next));
+            return next;
+          });
+        }}
+      />
 
       {/* Hotspot Captive Login Modal */}
       <HotspotLoginModal
@@ -620,14 +613,14 @@ export default function App() {
       <footer className="mt-auto border-t border-slate-900 bg-slate-950 px-6 py-4 text-center text-xs text-slate-500">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <span className="font-bold text-slate-400">همکار هاب</span>
+            <span className="font-bold text-slate-400">{appContent.hubTitle}</span>
             <span>—</span>
-            <span>سامانه شبکه محلی فضای کار اشتراکی و کپتیو پورتال میکروتیک</span>
+            <span>{appContent.hubSubtitle}</span>
           </div>
           <div className="flex items-center gap-4 text-[11px] text-slate-500">
-            <span>سرور لوکال شبکه</span>
+            <span>{appContent.phoneContact}</span>
             <span aria-hidden="true">·</span>
-            <span>پورتال هات‌اسپات Walled Garden</span>
+            <span>{appContent.locationAddress}</span>
           </div>
         </div>
       </footer>

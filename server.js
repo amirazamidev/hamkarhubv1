@@ -18,6 +18,137 @@ const DB_FILE = path.join(DATA_DIR, "coworking_db.json");
 if (!fs.existsSync(DATA_DIR)) {
   fs.mkdirSync(DATA_DIR, { recursive: true });
 }
+const DEFAULT_CAFE_MENU = [
+  {
+    id: "cafe-1",
+    name: "\u0627\u0633\u067E\u0631\u0633\u0648 \u062F\u0648\u0628\u0644 \u062A\u062E\u0635\u0635\u06CC",
+    category: "coffee",
+    price: 45e3,
+    description: "\u062F\u0627\u0646 \u0642\u0647\u0648\u0647 \u06F1\u06F0\u06F0\u066A \u0639\u0631\u0628\u06CC\u06A9\u0627 \u062A\u062E\u0635\u0635\u06CC \u0628\u0627 \u06A9\u0631\u0645\u0627\u06CC \u063A\u0644\u06CC\u0638 \u0648 \u0645\u0627\u0646\u062F\u06AF\u0627\u0631",
+    icon: "Coffee",
+    prepMinutes: 4,
+    isAvailable: true
+  },
+  {
+    id: "cafe-2",
+    name: "\u0622\u0645\u0631\u06CC\u06A9\u0627\u0646\u0648 \u06A9\u0644\u0627\u0633\u06CC\u06A9",
+    category: "coffee",
+    price: 5e4,
+    description: "\u062A\u0631\u06A9\u06CC\u0628 \u062F\u0648 \u0634\u0627\u062A \u0627\u0633\u067E\u0631\u0633\u0648 \u0648 \u0622\u0628 \u062C\u0648\u0634 \u0641\u06CC\u0644\u062A\u0631 \u0634\u062F\u0647\u060C \u067E\u0631\u06A9\u0627\u0641\u0626\u06CC\u0646 \u0648 \u0645\u062A\u0639\u0627\u062F\u0644",
+    icon: "Coffee",
+    prepMinutes: 4,
+    isAvailable: true
+  },
+  {
+    id: "cafe-3",
+    name: "\u06A9\u0627\u0641\u0647 \u0644\u0627\u062A\u0647 \u0628\u0627 \u0634\u06CC\u0631 \u06AF\u0631\u0645",
+    category: "coffee",
+    price: 65e3,
+    description: "\u0627\u0633\u067E\u0631\u0633\u0648 \u0647\u0645\u0631\u0627\u0647 \u0628\u0627 \u0634\u06CC\u0631 \u062A\u0627\u0632\u0647 \u0628\u0627 \u0641\u0648\u0645 \u0627\u0628\u0631\u06CC\u0634\u0645\u06CC \u0648 \u0644\u0627\u062A\u0647 \u0622\u0631\u062A \u0632\u06CC\u0628\u0627",
+    icon: "Coffee",
+    prepMinutes: 6,
+    isAvailable: true
+  },
+  {
+    id: "cafe-4",
+    name: "\u06A9\u0627\u067E\u0648\u0686\u06CC\u0646\u0648 \u0627\u06CC\u062A\u0627\u0644\u06CC\u0627\u06CC\u06CC",
+    category: "coffee",
+    price: 65e3,
+    description: "\u0637\u0639\u0645 \u06A9\u0644\u0627\u0633\u06CC\u06A9 \u0628\u0627 \u0641\u0648\u0645 \u0634\u06CC\u0631 \u063A\u0644\u06CC\u0638 \u0648 \u067E\u0648\u062F\u0631 \u062F\u0627\u0631\u0686\u06CC\u0646/\u06A9\u0627\u06A9\u0627\u0626\u0648 \u0645\u0631\u063A\u0648\u0628",
+    icon: "Coffee",
+    prepMinutes: 6,
+    isAvailable: true
+  },
+  {
+    id: "cafe-5",
+    name: "\u0642\u0647\u0648\u0647 \u062F\u0645\u06CC V60 \u062A\u06A9\u200C\u062E\u0627\u0633\u062A\u06AF\u0627\u0647",
+    category: "coffee",
+    price: 85e3,
+    description: "\u0639\u0635\u0627\u0631\u0647\u200C\u06AF\u06CC\u0631\u06CC \u062F\u0633\u062A\u06CC \u0628\u0627 \u0641\u06CC\u0644\u062A\u0631 \u06A9\u0627\u063A\u0630\u06CC\u060C \u0637\u0639\u0645\u200C\u06CC\u0627\u062F\u0647\u0627\u06CC \u06AF\u0644\u06CC \u0648 \u0645\u06CC\u0648\u0647\u200C\u0627\u06CC",
+    icon: "Coffee",
+    prepMinutes: 8,
+    isAvailable: true
+  },
+  {
+    id: "cafe-6",
+    name: "\u0642\u0647\u0648\u0647 \u0639\u0635\u0627\u0631\u0647 \u0633\u0631\u062F (Cold Brew)",
+    category: "cold",
+    price: 75e3,
+    description: "\u0639\u0635\u0627\u0631\u0647\u200C\u06AF\u06CC\u0631\u06CC \u06F1\u06F6 \u0633\u0627\u0639\u062A\u0647 \u0628\u0627 \u0622\u0628 \u06CC\u062E\u060C \u0627\u0633\u06CC\u062F\u06CC\u062A\u0647 \u0628\u0633\u06CC\u0627\u0631 \u067E\u0627\u06CC\u06CC\u0646 \u0648 \u06A9\u0627\u0641\u0626\u06CC\u0646 \u0627\u0646\u0631\u0698\u06CC\u200C\u0628\u062E\u0634",
+    icon: "CupSoda",
+    prepMinutes: 2,
+    isAvailable: true
+  },
+  {
+    id: "cafe-7",
+    name: "\u0622\u06CC\u0633 \u0644\u0627\u062A\u0647 \u0628\u0627 \u0633\u06CC\u0631\u0648\u067E \u0648\u0627\u0646\u06CC\u0644",
+    category: "cold",
+    price: 75e3,
+    description: "\u0634\u06CC\u0631 \u0633\u0631\u062F\u060C \u06CC\u062E \u0628\u0644\u0648\u0631\u06CC\u060C \u0627\u0633\u067E\u0631\u0633\u0648 \u062A\u0627\u0632\u0647 \u0648 \u0633\u06CC\u0631\u0648\u067E \u0637\u0628\u06CC\u0639\u06CC \u0648\u0627\u0646\u06CC\u0644 \u0645\u0627\u062F\u0627\u06AF\u0627\u0633\u06A9\u0627\u0631",
+    icon: "CupSoda",
+    prepMinutes: 4,
+    isAvailable: true
+  },
+  {
+    id: "cafe-8",
+    name: "\u0644\u06CC\u0645\u0648\u0646\u0627\u062F \u0646\u0639\u0646\u0627\u0639 \u0637\u0628\u06CC\u0639\u06CC (\u0645\u0648\u062E\u06CC\u062A\u0648)",
+    category: "cold",
+    price: 6e4,
+    description: "\u0622\u0628 \u0644\u06CC\u0645\u0648\u06CC \u062A\u0627\u0632\u0647\u060C \u0628\u0631\u06AF\u200C\u0647\u0627\u06CC \u0646\u0639\u0646\u0627\u0639 \u06A9\u0648\u0628\u06CC\u062F\u0647 \u0634\u062F\u0647 \u0648 \u0633\u0648\u062F\u0627\u06CC \u06AF\u0627\u0632\u062F\u0627\u0631 \u062E\u0646\u06A9",
+    icon: "CupSoda",
+    prepMinutes: 5,
+    isAvailable: true
+  },
+  {
+    id: "cafe-9",
+    name: "\u06A9\u0631\u0648\u0633\u0627\u0646 \u0641\u0631\u0627\u0646\u0633\u0648\u06CC \u062A\u0627\u0632\u0647 \u067E\u062E\u062A",
+    category: "dessert",
+    price: 55e3,
+    description: "\u0644\u0627\u06CC\u0647\u200C\u0644\u0627\u06CC\u0647 \u06A9\u0631\u0647\u200C\u0627\u06CC\u060C \u0628\u0631\u0634\u062A\u0647 \u062F\u0631 \u0628\u06CC\u0631\u0648\u0646 \u0648 \u0646\u0631\u0645 \u062F\u0631 \u062F\u0627\u062E\u0644 (\u0633\u0631\u0648 \u06AF\u0631\u0645)",
+    icon: "Croissant",
+    prepMinutes: 3,
+    isAvailable: true
+  },
+  {
+    id: "cafe-10",
+    name: "\u0686\u06CC\u0632\u06A9\u06CC\u06A9 \u0646\u06CC\u0648\u06CC\u0648\u0631\u06A9\u06CC \u062A\u0646\u0648\u0631\u06CC",
+    category: "dessert",
+    price: 95e3,
+    description: "\u0628\u0627\u0641\u062A \u062E\u0627\u0645\u0647\u200C\u0627\u06CC \u063A\u0646\u06CC \u0628\u0627 \u06A9\u0631\u0627\u0633\u062A \u0628\u06CC\u0633\u06A9\u0648\u06CC\u062A\u06CC \u0648 \u0633\u0633 \u062A\u0645\u0634\u06A9 \u062A\u0631\u0634 \u0648 \u0634\u06CC\u0631\u06CC\u0646",
+    icon: "Cake",
+    prepMinutes: 1,
+    isAvailable: true
+  },
+  {
+    id: "cafe-11",
+    name: "\u0633\u0627\u0646\u062F\u0648\u06CC\u0686 \u0645\u0631\u063A \u0648 \u0633\u0633 \u067E\u0633\u062A\u0648 (\u067E\u0627\u0646\u06CC\u0646\u06CC)",
+    category: "snack",
+    price: 145e3,
+    description: "\u0641\u06CC\u0644\u0647 \u0645\u0631\u063A \u06AF\u0631\u06CC\u0644 \u0634\u062F\u0647\u060C \u0633\u0633 \u067E\u0633\u062A\u0648 \u0631\u06CC\u062D\u0627\u0646\u060C \u067E\u0646\u06CC\u0631 \u0645\u0648\u0632\u0627\u0631\u0644\u0627 \u06A9\u0634\u200C\u062F\u0627\u0631 \u062F\u0631 \u0646\u0627\u0646 \u0686\u0627\u0628\u0627\u062A\u0627",
+    icon: "UtensilsCrossed",
+    prepMinutes: 12,
+    isAvailable: true
+  },
+  {
+    id: "cafe-12",
+    name: "\u06A9\u0644\u0627\u0628 \u0633\u0627\u0646\u062F\u0648\u06CC\u0686 \u0628\u06CC\u06A9\u0646 \u0628\u0648\u0642\u0644\u0645\u0648\u0646 \u0648 \u067E\u0646\u06CC\u0631",
+    category: "snack",
+    price: 135e3,
+    description: "\u0633\u0647 \u0644\u0627\u06CC\u0647 \u0646\u0627\u0646 \u062A\u0633\u062A \u062A\u0633\u062A\u200C\u0634\u062F\u0647\u060C \u0628\u06CC\u06A9\u0646 \u0628\u0648\u0642\u0644\u0645\u0648\u0646 \u062F\u0648\u062F\u06CC\u060C \u067E\u0646\u06CC\u0631 \u06AF\u0648\u062F\u0627 \u0648 \u06A9\u0627\u0647\u0648 \u0641\u0631\u0627\u0646\u0633\u0648\u06CC",
+    icon: "UtensilsCrossed",
+    prepMinutes: 10,
+    isAvailable: true
+  }
+];
+const DEFAULT_APP_CONTENT = {
+  hubTitle: "\u0647\u0645\u06A9\u0627\u0631 \u0647\u0627\u0628 | \u067E\u0631\u062A\u0627\u0644 \u0645\u062D\u0644\u06CC \u0641\u0636\u0627\u06CC \u06A9\u0627\u0631 \u0627\u0634\u062A\u0631\u0627\u06A9\u06CC",
+  hubSubtitle: "\u0627\u06CC\u0646\u062A\u0631\u0646\u062A \u067E\u0627\u06CC\u062F\u0627\u0631\u060C \u0634\u0628\u06A9\u0647 \u0627\u062C\u062A\u0645\u0627\u0639\u06CC \u0647\u0645\u06A9\u0627\u0631\u0627\u0646 \u0648 \u0633\u06CC\u0633\u062A\u0645 \u0631\u0641\u0627\u0647\u06CC \u06CC\u06A9\u067E\u0627\u0631\u0686\u0647",
+  welcomeNotice: "\u0628\u0647 \u0634\u0628\u06A9\u0647 \u0648\u0627\u06CC\u200C\u0641\u0627\u06CC \u0648 \u067E\u0631\u062A\u0627\u0644 \u0627\u0631\u062A\u0628\u0627\u0637\u06CC \u0641\u0636\u0627\u06CC \u06A9\u0627\u0631 \u0627\u0634\u062A\u0631\u0627\u06A9\u06CC \u062E\u0648\u0634 \u0622\u0645\u062F\u06CC\u062F!",
+  portalDescription: "\u0628\u0627 \u0627\u06A9\u0627\u0646\u062A \u0627\u0634\u062A\u0631\u0627\u06A9 \u062E\u0648\u062F \u0628\u0647 \u0627\u06CC\u0646\u062A\u0631\u0646\u062A \u0645\u062A\u0635\u0644 \u0634\u0648\u06CC\u062F \u06CC\u0627 \u0628\u062F\u0648\u0646 \u0646\u06CC\u0627\u0632 \u0628\u0647 \u0627\u06CC\u0646\u062A\u0631\u0646\u062A\u060C \u0628\u0627 \u0647\u0645\u06A9\u0627\u0631\u0627\u0646 \u0645\u0633\u062A\u0642\u0631 \u062F\u0631 \u0641\u0636\u0627 \u06AF\u0641\u062A\u06AF\u0648 \u06A9\u0646\u06CC\u062F \u0648 \u0627\u0632 \u06A9\u0627\u0641\u0647 \u0633\u0641\u0627\u0631\u0634 \u062F\u0647\u06CC\u062F.",
+  wifiRules: "\u06F1. \u0627\u0633\u062A\u0641\u0627\u062F\u0647 \u0627\u0632 \u062A\u0648\u0631\u0646\u062A \u0648 \u062F\u0627\u0646\u0644\u0648\u062F \u063A\u06CC\u0631\u0645\u0646\u0635\u0641\u0627\u0646\u0647 \u062F\u0631 \u0633\u0627\u0639\u0627\u062A \u0627\u0648\u062C \u0645\u0645\u0646\u0648\u0639 \u0627\u0633\u062A. \u06F2. \u0628\u0631\u0627\u06CC \u062C\u0644\u0633\u0627\u062A \u0635\u0648\u062A\u06CC \u0627\u0632 \u0641\u0648\u0646\u200C\u0628\u0627\u06A9\u0633 \u0627\u0633\u062A\u0641\u0627\u062F\u0647 \u0634\u0648\u062F. \u06F3. \u0631\u0639\u0627\u06CC\u062A \u062D\u0631\u06CC\u0645 \u062E\u0635\u0648\u0635\u06CC \u0627\u0644\u0632\u0627\u0645\u06CC \u0627\u0633\u062A.",
+  phoneContact: "\u06F0\u06F2\u06F1-\u06F8\u06F8\u06F9\u06F9\u06F0\u06F0\u06F1\u06F1",
+  locationAddress: "\u062E\u06CC\u0627\u0628\u0627\u0646 \u0648\u0644\u06CC\u0639\u0635\u0631\u060C \u062A\u0642\u0627\u0637\u0639 \u0641\u0627\u0637\u0645\u06CC\u060C \u067E\u0644\u0627\u06A9 \u06F1\u06F2\u060C \u0637\u0628\u0642\u0647 \u06F3"
+};
 const DEFAULT_DB = {
   config: {
     routerIp: "192.168.88.1",
@@ -30,6 +161,9 @@ const DEFAULT_DB = {
     walledGardenDomain: "hub.local",
     welcomeNotice: "\u0628\u0647 \u0627\u06CC\u0646\u062A\u0631\u0646\u062A \u0648 \u0634\u0628\u06A9\u0647 \u0627\u062E\u062A\u0635\u0627\u0635\u06CC \u0641\u0636\u0627\u06CC \u06A9\u0627\u0631 \u0627\u0634\u062A\u0631\u0627\u06A9\u06CC \u062E\u0648\u0634 \u0622\u0645\u062F\u06CC\u062F!"
   },
+  appContent: DEFAULT_APP_CONTENT,
+  cafeMenu: DEFAULT_CAFE_MENU,
+  cafeOrders: [],
   channels: [
     {
       id: "general",
@@ -312,10 +446,20 @@ function readDb() {
     if (fs.existsSync(DB_FILE)) {
       const data = fs.readFileSync(DB_FILE, "utf-8");
       const parsed = JSON.parse(data);
+      if (!parsed.appContent) parsed.appContent = DEFAULT_DB.appContent;
+      if (!parsed.cafeMenu || !Array.isArray(parsed.cafeMenu)) parsed.cafeMenu = DEFAULT_CAFE_MENU;
+      if (!parsed.cafeOrders || !Array.isArray(parsed.cafeOrders)) parsed.cafeOrders = [];
       if (!parsed.cafeteria) parsed.cafeteria = DEFAULT_DB.cafeteria;
       if (!parsed.staff || !Array.isArray(parsed.staff)) parsed.staff = DEFAULT_DB.staff;
       if (!parsed.hotspotUsers || !Array.isArray(parsed.hotspotUsers)) parsed.hotspotUsers = DEFAULT_DB.hotspotUsers;
       if (!parsed.hotspotActive || !Array.isArray(parsed.hotspotActive)) parsed.hotspotActive = DEFAULT_DB.hotspotActive;
+      for (const u of parsed.hotspotUsers) {
+        if (!u.maxSharedUsers) u.maxSharedUsers = 2;
+        if (!u.password) u.password = "123456";
+        u.activeDevicesCount = (parsed.hotspotActive || []).filter(
+          (a) => a.user && a.user.toLowerCase() === u.name.toLowerCase()
+        ).length;
+      }
       return parsed;
     }
   } catch (err) {
@@ -910,6 +1054,280 @@ app.delete("/api/mikrotik/users/:id", async (req, res) => {
   saveDb(db);
   broadcast("hotspot_users_updated", db.hotspotUsers);
   res.json({ success: true });
+});
+app.put("/api/mikrotik/users/:id", async (req, res) => {
+  const { id } = req.params;
+  const { name, password, profile, limitBytesTotal, maxSharedUsers, disabled, comment, rateLimit } = req.body;
+  const db = readDb();
+  const user = db.hotspotUsers.find((u) => u.id === id || u.name === id);
+  if (!user) return res.status(404).json({ error: "\u06A9\u0627\u0631\u0628\u0631 \u0647\u0627\u062A\u200C\u0627\u0633\u067E\u0627\u062A \u06CC\u0627\u0641\u062A \u0646\u0634\u062F" });
+  if (name) user.name = name.trim();
+  if (password !== void 0) user.password = password;
+  if (profile) user.profile = profile;
+  if (limitBytesTotal !== void 0) user.limitBytesTotal = Number(limitBytesTotal);
+  if (maxSharedUsers !== void 0) user.maxSharedUsers = Math.max(1, Number(maxSharedUsers));
+  if (disabled !== void 0) user.disabled = Boolean(disabled);
+  if (comment !== void 0) user.comment = comment;
+  if (rateLimit !== void 0) user.rateLimit = rateLimit;
+  let updatedOnRouter = false;
+  try {
+    const patchBody = {
+      name: user.name,
+      profile: user.profile,
+      comment: user.comment,
+      disabled: user.disabled ? "true" : "false"
+    };
+    if (user.password) patchBody.password = user.password;
+    if (user.limitBytesTotal > 0) patchBody["limit-bytes-total"] = user.limitBytesTotal;
+    await callMikrotikRest(db.config, `/ip/hotspot/user/${encodeURIComponent(user.id)}`, "PATCH", patchBody);
+    updatedOnRouter = true;
+  } catch {
+  }
+  saveDb(db);
+  broadcast("hotspot_users_updated", db.hotspotUsers);
+  res.json({ success: true, updatedOnRouter, user });
+});
+app.post("/api/mikrotik/users/:id/reset-traffic", async (req, res) => {
+  const { id } = req.params;
+  const db = readDb();
+  const user = db.hotspotUsers.find((u) => u.id === id || u.name === id);
+  if (!user) return res.status(404).json({ error: "\u06A9\u0627\u0631\u0628\u0631 \u0647\u0627\u062A\u200C\u0627\u0633\u067E\u0627\u062A \u06CC\u0627\u0641\u062A \u0646\u0634\u062F" });
+  user.bytesIn = 0;
+  user.bytesOut = 0;
+  user.uptime = "0s";
+  try {
+    await callMikrotikRest(db.config, `/ip/hotspot/user/reset-counters`, "POST", {
+      numbers: user.name
+    });
+  } catch {
+  }
+  saveDb(db);
+  broadcast("hotspot_users_updated", db.hotspotUsers);
+  res.json({ success: true, message: "\u0634\u0645\u0627\u0631\u0646\u062F\u0647 \u062A\u0631\u0627\u0641\u06CC\u06A9 \u0645\u0635\u0631\u0641\u06CC \u06A9\u0627\u0631\u0628\u0631 \u0635\u0641\u0631 \u0634\u062F", user });
+});
+app.get("/api/user/account", (req, res) => {
+  const username = String(req.query.username || "").trim();
+  if (!username) return res.status(400).json({ error: "\u0646\u0627\u0645 \u06A9\u0627\u0631\u0628\u0631\u06CC \u0645\u0634\u062E\u0635 \u0646\u0634\u062F\u0647 \u0627\u0633\u062A" });
+  const db = readDb();
+  const user = db.hotspotUsers.find(
+    (u) => u.name.toLowerCase() === username.toLowerCase() || u.id === username
+  );
+  const activeSessions = db.hotspotActive.filter(
+    (a) => a.user && a.user.toLowerCase() === username.toLowerCase()
+  );
+  const totalBytesIn = (user ? user.bytesIn : 0) + activeSessions.reduce((acc, s) => acc + s.bytesIn, 0);
+  const totalBytesOut = (user ? user.bytesOut : 0) + activeSessions.reduce((acc, s) => acc + s.bytesOut, 0);
+  const totalBytesUsed = totalBytesIn + totalBytesOut;
+  const limitBytes = user ? user.limitBytesTotal : 0;
+  const remainingBytes = limitBytes > 0 ? Math.max(0, limitBytes - totalBytesUsed) : null;
+  const maxDevices = user?.maxSharedUsers || 2;
+  res.json({
+    username,
+    profile: user?.profile || "standard-user",
+    isConnected: activeSessions.length > 0,
+    bytesIn: totalBytesIn,
+    bytesOut: totalBytesOut,
+    totalBytesUsed,
+    limitBytesTotal: limitBytes,
+    remainingBytes,
+    activeDevicesCount: activeSessions.length,
+    maxSharedUsers: maxDevices,
+    activeDevices: activeSessions.map((s) => ({
+      id: s.id,
+      address: s.address,
+      macAddress: s.macAddress,
+      uptime: s.uptime
+    })),
+    uptime: activeSessions[0]?.uptime || user?.uptime || "0s",
+    comment: user?.comment || "\u0639\u0636\u0648 \u0641\u0636\u0627\u06CC \u06A9\u0627\u0631"
+  });
+});
+app.post("/api/user/change-password", async (req, res) => {
+  const { username, oldPassword, newPassword } = req.body;
+  if (!username || !newPassword) {
+    return res.status(400).json({ error: "\u0646\u0627\u0645 \u06A9\u0627\u0631\u0628\u0631\u06CC \u0648 \u0631\u0645\u0632 \u0639\u0628\u0648\u0631 \u062C\u062F\u06CC\u062F \u0627\u0644\u0632\u0627\u0645\u06CC \u0647\u0633\u062A\u0646\u062F" });
+  }
+  if (String(newPassword).length < 4) {
+    return res.status(400).json({ error: "\u0631\u0645\u0632 \u0639\u0628\u0648\u0631 \u062C\u062F\u06CC\u062F \u0628\u0627\u06CC\u062F \u062D\u062F\u0627\u0642\u0644 \u06F4 \u06A9\u0627\u0631\u0627\u06A9\u062A\u0631 \u0628\u0627\u0634\u062F" });
+  }
+  const db = readDb();
+  let user = db.hotspotUsers.find(
+    (u) => u.name.toLowerCase() === username.trim().toLowerCase()
+  );
+  if (!user) {
+    const newUser = {
+      id: `user-${Date.now()}`,
+      name: username.trim(),
+      password: newPassword,
+      profile: "coworker-standard",
+      bytesIn: 0,
+      bytesOut: 0,
+      limitBytesTotal: 10737418240,
+      // 10 GB
+      uptime: "0s",
+      comment: "\u0639\u0636\u0648 \u062E\u0648\u062F\u062B\u0628\u062A\u200C\u0646\u0627\u0645\u06CC",
+      maxSharedUsers: 2
+    };
+    db.hotspotUsers.push(newUser);
+    user = newUser;
+  } else {
+    if (user.password && oldPassword && user.password !== oldPassword) {
+      return res.status(403).json({ error: "\u06A9\u0644\u0645\u0647 \u0639\u0628\u0648\u0631 \u0642\u0628\u0644\u06CC \u0646\u0627\u062F\u0631\u0633\u062A \u0627\u0633\u062A" });
+    }
+    user.password = newPassword;
+  }
+  let updatedOnRouter = false;
+  try {
+    await callMikrotikRest(db.config, `/ip/hotspot/user/${encodeURIComponent(user.id)}`, "PATCH", {
+      password: newPassword
+    });
+    updatedOnRouter = true;
+  } catch {
+  }
+  saveDb(db);
+  broadcast("hotspot_users_updated", db.hotspotUsers);
+  res.json({
+    success: true,
+    message: "\u06A9\u0644\u0645\u0647 \u0639\u0628\u0648\u0631 \u0634\u0645\u0627 \u0628\u0627 \u0645\u0648\u0641\u0642\u06CC\u062A \u062A\u063A\u06CC\u06CC\u0631 \u06A9\u0631\u062F \u0648 \u062F\u0631 \u0631\u0648\u062A\u0631 \u062B\u0628\u062A \u0634\u062F.",
+    updatedOnRouter
+  });
+});
+app.get("/api/cafe/menu", (req, res) => {
+  const db = readDb();
+  res.json(db.cafeMenu || DEFAULT_CAFE_MENU);
+});
+app.post("/api/admin/cafe/menu", (req, res) => {
+  const { name, category, price, description, icon, prepMinutes, isAvailable } = req.body;
+  if (!name || !price) {
+    return res.status(400).json({ error: "\u0646\u0627\u0645 \u0648 \u0642\u06CC\u0645\u062A \u0622\u06CC\u062A\u0645 \u0645\u0646\u0648 \u0627\u0644\u0632\u0627\u0645\u06CC \u0627\u0633\u062A" });
+  }
+  const db = readDb();
+  const newItem = {
+    id: `item-${Date.now()}`,
+    name: name.trim(),
+    category: category || "coffee",
+    price: Number(price),
+    description: description || "",
+    icon: icon || "Coffee",
+    prepMinutes: Number(prepMinutes) || 5,
+    isAvailable: isAvailable !== void 0 ? Boolean(isAvailable) : true
+  };
+  db.cafeMenu.push(newItem);
+  saveDb(db);
+  broadcast("cafe_menu_updated", db.cafeMenu);
+  res.status(201).json(newItem);
+});
+app.put("/api/admin/cafe/menu/:id", (req, res) => {
+  const { id } = req.params;
+  const { name, category, price, description, icon, prepMinutes, isAvailable } = req.body;
+  const db = readDb();
+  const item = db.cafeMenu.find((m) => m.id === id);
+  if (!item) return res.status(404).json({ error: "\u0622\u06CC\u062A\u0645 \u0645\u0646\u0648 \u06CC\u0627\u0641\u062A \u0646\u0634\u062F" });
+  if (name) item.name = name.trim();
+  if (category) item.category = category;
+  if (price !== void 0) item.price = Number(price);
+  if (description !== void 0) item.description = description;
+  if (icon) item.icon = icon;
+  if (prepMinutes !== void 0) item.prepMinutes = Number(prepMinutes);
+  if (isAvailable !== void 0) item.isAvailable = Boolean(isAvailable);
+  saveDb(db);
+  broadcast("cafe_menu_updated", db.cafeMenu);
+  res.json(item);
+});
+app.delete("/api/admin/cafe/menu/:id", (req, res) => {
+  const { id } = req.params;
+  const db = readDb();
+  db.cafeMenu = db.cafeMenu.filter((m) => m.id !== id);
+  saveDb(db);
+  broadcast("cafe_menu_updated", db.cafeMenu);
+  res.json({ success: true });
+});
+app.get("/api/cafe/orders", (req, res) => {
+  const db = readDb();
+  const customerName = req.query.customer ? String(req.query.customer).trim().toLowerCase() : null;
+  let orders = [...db.cafeOrders || []];
+  if (customerName) {
+    orders = orders.filter((o) => o.customerName && o.customerName.toLowerCase() === customerName);
+  }
+  orders.sort((a, b) => b.createdAt - a.createdAt);
+  res.json(orders);
+});
+app.post("/api/cafe/orders", (req, res) => {
+  const { customerName, desk, items, note } = req.body;
+  if (!customerName || !items || !Array.isArray(items) || items.length === 0) {
+    return res.status(400).json({ error: "\u0627\u0637\u0644\u0627\u0639\u0627\u062A \u0633\u0641\u0627\u0631\u0634 \u0648 \u0627\u0642\u0644\u0627\u0645 \u0627\u0646\u062A\u062E\u0627\u0628\u200C\u0634\u062F\u0647 \u0646\u0627\u0642\u0635 \u0627\u0633\u062A" });
+  }
+  const db = readDb();
+  const nextNumber = db.cafeOrders && db.cafeOrders.length > 0 ? Math.max(...db.cafeOrders.map((o) => o.orderNumber || 100)) + 1 : 101;
+  const totalAmount = items.reduce(
+    (sum, it) => sum + (Number(it.price) || 0) * (Number(it.quantity) || 1),
+    0
+  );
+  const newOrder = {
+    id: `order-${Date.now()}`,
+    orderNumber: nextNumber,
+    customerName: customerName.trim(),
+    desk: desk ? desk.trim() : "\u0645\u06CC\u0632 \u0622\u0632\u0627\u062F / \u0633\u0627\u0644\u0646 \u0627\u0635\u0644\u06CC",
+    items: items.map((it) => ({
+      menuItemId: it.menuItemId || it.id,
+      name: it.name,
+      price: Number(it.price),
+      quantity: Number(it.quantity) || 1
+    })),
+    totalAmount,
+    note: note ? note.trim() : "",
+    status: "pending",
+    createdAt: Date.now()
+  };
+  db.cafeOrders.push(newOrder);
+  saveDb(db);
+  broadcast("cafe_order_created", newOrder);
+  res.status(201).json({ success: true, order: newOrder });
+});
+app.patch("/api/admin/cafe/orders/:id/status", (req, res) => {
+  const { id } = req.params;
+  const { status } = req.body;
+  const db = readDb();
+  const order = db.cafeOrders.find((o) => o.id === id);
+  if (!order) return res.status(404).json({ error: "\u0633\u0641\u0627\u0631\u0634 \u06CC\u0627\u0641\u062A \u0646\u0634\u062F" });
+  const validStatuses = ["pending", "preparing", "ready", "delivered", "cancelled"];
+  if (!validStatuses.includes(status)) {
+    return res.status(400).json({ error: "\u0648\u0636\u0639\u06CC\u062A \u0646\u0627\u0645\u0639\u062A\u0628\u0631 \u0627\u0633\u062A" });
+  }
+  order.status = status;
+  saveDb(db);
+  broadcast("cafe_order_updated", order);
+  res.json({ success: true, order });
+});
+app.get("/api/admin/app-content", (req, res) => {
+  const db = readDb();
+  res.json(db.appContent || DEFAULT_APP_CONTENT);
+});
+app.post("/api/admin/app-content", (req, res) => {
+  const db = readDb();
+  db.appContent = { ...db.appContent || DEFAULT_APP_CONTENT, ...req.body };
+  saveDb(db);
+  broadcast("app_content_updated", db.appContent);
+  res.json({ success: true, appContent: db.appContent });
+});
+app.post("/api/admin/clear-mock-data", (req, res) => {
+  const { clearType } = req.body;
+  const db = readDb();
+  if (clearType === "messages" || clearType === "all") {
+    db.messages = [];
+  }
+  if (clearType === "members" || clearType === "all") {
+    db.members = [];
+  }
+  if (clearType === "notices" || clearType === "all") {
+    db.notices = [];
+  }
+  if (clearType === "orders" || clearType === "all") {
+    db.cafeOrders = [];
+  }
+  saveDb(db);
+  broadcast("db_cleared", { clearType });
+  res.json({ success: true, message: "\u0645\u062D\u062A\u0648\u0627\u0647\u0627\u06CC \u0646\u0645\u0648\u0646\u0647 \u0628\u0627 \u0645\u0648\u0641\u0642\u06CC\u062A \u067E\u0627\u06A9 \u0634\u062F\u0646\u062F" });
 });
 app.get("/api/mikrotik/active", async (req, res) => {
   const db = readDb();
@@ -1507,6 +1925,328 @@ add address=${db.config.serverLocalIp} name="${db.config.walledGardenDomain}" co
     serverUrl
   });
 });
+function renderFallbackPortal() {
+  const db = readDb();
+  return `<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>\u0647\u0645\u06A9\u0627\u0631 \u0647\u0627\u0628 | \u067E\u0631\u062A\u0627\u0644 \u0645\u062D\u0644\u06CC \u0641\u0636\u0627\u06CC \u06A9\u0627\u0631 \u0627\u0634\u062A\u0631\u0627\u06A9\u06CC \u0648 \u0645\u06CC\u06A9\u0631\u0648\u062A\u06CC\u06A9</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: 'Vazirmatn', sans-serif; }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen">
+  <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold text-xl border border-amber-500/30">
+          \u26A1
+        </div>
+        <div>
+          <h1 class="text-base font-bold text-white">${db.config.hotspotName || "\u0647\u0645\u06A9\u0627\u0631 \u0647\u0627\u0628"}</h1>
+          <p class="text-xs text-slate-400">\u067E\u0631\u062A\u0627\u0644 \u0645\u062D\u0644\u06CC \u0641\u0636\u0627\u06CC \u06A9\u0627\u0631 \u0627\u0634\u062A\u0631\u0627\u06A9\u06CC \u0648 \u0648\u0627\u06CC\u200C\u0641\u0627\u06CC \u0645\u06CC\u06A9\u0631\u0648\u062A\u06CC\u06A9</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          \u0633\u0631\u0648\u0631 \u0641\u0639\u0627\u0644 \u0631\u0648\u06CC \u067E\u0648\u0631\u062A \u06F3\u06F0\u06F0\u06F0
+        </span>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-4 py-6">
+    <!-- TABS -->
+    <div class="flex flex-wrap border-b border-slate-800 gap-2 mb-6 text-sm font-semibold">
+      <button onclick="switchTab('hotspot')" id="tab-btn-hotspot" class="tab-btn px-4 py-2.5 border-b-2 border-amber-500 text-amber-400">
+        \u{1F4F6} \u0648\u0631\u0648\u062F \u0628\u0647 \u0627\u06CC\u0646\u062A\u0631\u0646\u062A \u0648 \u0648\u0627\u06CC\u200C\u0641\u0627\u06CC
+      </button>
+      <button onclick="switchTab('chat')" id="tab-btn-chat" class="tab-btn px-4 py-2.5 text-slate-400 hover:text-slate-200">
+        \u{1F4AC} \u0686\u062A \u0645\u062D\u0644\u06CC \u0647\u0645\u06A9\u0627\u0631\u0627\u0646
+      </button>
+      <button onclick="switchTab('members')" id="tab-btn-members" class="tab-btn px-4 py-2.5 text-slate-400 hover:text-slate-200">
+        \u{1F465} \u0627\u0639\u0636\u0627\u06CC \u062D\u0627\u0636\u0631 \u0648 \u0635\u0646\u062F\u0644\u06CC\u200C\u0647\u0627
+      </button>
+      <button onclick="switchTab('amenities')" id="tab-btn-amenities" class="tab-btn px-4 py-2.5 text-slate-400 hover:text-slate-200">
+        \u2615 \u0627\u0645\u06A9\u0627\u0646\u0627\u062A \u0641\u0636\u0627\u06CC \u06A9\u0627\u0631
+      </button>
+      <button onclick="switchTab('status')" id="tab-btn-status" class="tab-btn px-4 py-2.5 text-slate-400 hover:text-slate-200">
+        \u2699\uFE0F \u0648\u0636\u0639\u06CC\u062A \u0633\u0631\u0648\u0631 \u0648 \u0627\u062F\u0645\u06CC\u0646
+      </button>
+    </div>
+
+    <!-- TAB: HOTSPOT -->
+    <div id="tab-hotspot" class="tab-pane">
+      <div class="max-w-md mx-auto bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
+        <div class="text-center mb-6">
+          <div class="w-14 h-14 mx-auto rounded-2xl bg-amber-500/10 text-amber-400 flex items-center justify-center text-3xl mb-3 border border-amber-500/20">
+            \u{1F4F6}
+          </div>
+          <h2 class="text-lg font-bold text-white">\u0648\u0631\u0648\u062F \u0628\u0647 \u0634\u0628\u06A9\u0647 \u0648\u0627\u06CC\u200C\u0641\u0627\u06CC \u0645\u06CC\u06A9\u0631\u0648\u062A\u06CC\u06A9</h2>
+          <p class="text-xs text-slate-400 mt-1">\u0646\u0627\u0645 \u06A9\u0627\u0631\u0628\u0631\u06CC \u0648 \u0631\u0645\u0632 \u0627\u0634\u062A\u0631\u0627\u06A9 \u062E\u0648\u062F \u0631\u0627 \u0628\u0631\u0627\u06CC \u0627\u062A\u0635\u0627\u0644 \u0628\u0647 \u0627\u06CC\u0646\u062A\u0631\u0646\u062A \u0648\u0627\u0631\u062F \u06A9\u0646\u06CC\u062F</p>
+        </div>
+
+        <form method="post" action="http://192.168.88.1/login" id="hotspot-form" class="space-y-4">
+          <div>
+            <label class="block text-xs font-medium text-slate-300 mb-1.5">\u0646\u0627\u0645 \u06A9\u0627\u0631\u0628\u0631\u06CC (\u06A9\u062F \u0639\u0636\u0648\u06CC\u062A \u06CC\u0627 \u0634\u0645\u0627\u0631\u0647 \u062A\u0644\u0641\u0646)</label>
+            <input type="text" name="username" required placeholder="\u0645\u062B\u0627\u0644: amir \u06CC\u0627 \u0634\u0645\u0627\u0631\u0647 \u062A\u0645\u0627\u0633" class="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:border-amber-500">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-300 mb-1.5">\u06A9\u0644\u0645\u0647 \u0639\u0628\u0648\u0631</label>
+            <input type="password" name="password" required placeholder="\u06A9\u0644\u0645\u0647 \u0639\u0628\u0648\u0631 \u0627\u06CC\u0646\u062A\u0631\u0646\u062A" class="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:border-amber-500">
+          </div>
+          <input type="hidden" name="dst" value="http://${db.config.serverLocalIp || "192.168.30.20"}:3000/">
+          
+          <button type="submit" class="w-full py-3 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-sm rounded-xl transition shadow-lg shadow-amber-500/20">
+            \u0627\u062A\u0635\u0627\u0644 \u0628\u0647 \u0627\u06CC\u0646\u062A\u0631\u0646\u062A
+          </button>
+        </form>
+
+        <div class="mt-6 pt-5 border-t border-slate-800 text-center">
+          <button onclick="switchTab('chat')" class="text-xs text-amber-400 hover:underline">
+            \u2190 \u0648\u0631\u0648\u062F \u0645\u0633\u062A\u0642\u06CC\u0645 \u0628\u0647 \u0686\u062A \u0645\u062D\u0644\u06CC \u0647\u0645\u06A9\u0627\u0631\u0627\u0646 (\u0628\u062F\u0648\u0646 \u0646\u06CC\u0627\u0632 \u0628\u0647 \u0627\u06CC\u0646\u062A\u0631\u0646\u062A)
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: CHAT -->
+    <div id="tab-chat" class="tab-pane hidden">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div class="md:col-span-1 bg-slate-900 border border-slate-800 rounded-2xl p-4">
+          <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">\u06A9\u0627\u0646\u0627\u0644\u200C\u0647\u0627\u06CC \u06AF\u0641\u062A\u06AF\u0648</h3>
+          <div class="space-y-1" id="chat-channels-list">
+            <button class="w-full text-right px-3 py-2 rounded-xl bg-amber-500/10 text-amber-400 font-semibold text-xs border border-amber-500/20">
+              # \u0639\u0645\u0648\u0645\u06CC (General)
+            </button>
+          </div>
+          <div class="mt-6 pt-4 border-t border-slate-800">
+            <p class="text-xs text-slate-400">\u062A\u0645\u0627\u0645 \u067E\u06CC\u0627\u0645\u200C\u0647\u0627 \u0628\u0647 \u0635\u0648\u0631\u062A \u0632\u0646\u062F\u0647 \u062F\u0631 \u0634\u0628\u06A9\u0647 \u0645\u062D\u0644\u06CC \u0630\u062E\u06CC\u0631\u0647 \u0645\u06CC\u200C\u0634\u0648\u0646\u062F.</p>
+          </div>
+        </div>
+
+        <div class="md:col-span-3 bg-slate-900 border border-slate-800 rounded-2xl flex flex-col h-[520px]">
+          <div class="p-3.5 border-b border-slate-800 flex items-center justify-between">
+            <span class="text-xs font-bold text-white flex items-center gap-2">
+              <span class="text-amber-400">#</span> \u06A9\u0627\u0646\u0627\u0644 \u0639\u0645\u0648\u0645\u06CC \u0647\u0645\u06A9\u0627\u0631\u0627\u0646
+            </span>
+            <span class="text-xs text-emerald-400" id="chat-online-count">\u0627\u062A\u0635\u0627\u0644 \u0641\u0639\u0627\u0644</span>
+          </div>
+
+          <div id="chat-messages" class="flex-1 p-4 overflow-y-auto space-y-3">
+            <div class="text-center text-xs text-slate-500 my-4">\u062F\u0631 \u062D\u0627\u0644 \u062F\u0631\u06CC\u0627\u0641\u062A \u067E\u06CC\u0627\u0645\u200C\u0647\u0627...</div>
+          </div>
+
+          <form id="chat-form" onsubmit="handleSendMessage(event)" class="p-3 border-t border-slate-800 flex gap-2">
+            <input type="text" id="chat-input" placeholder="\u067E\u06CC\u0627\u0645 \u062E\u0648\u062F \u0631\u0627 \u0628\u0646\u0648\u06CC\u0633\u06CC\u062F..." required class="flex-1 px-4 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:border-amber-500">
+            <button type="submit" class="px-5 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-sm rounded-xl transition">
+              \u0627\u0631\u0633\u0627\u0644
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: MEMBERS -->
+    <div id="tab-members" class="tab-pane hidden">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-sm font-bold text-white">\u0627\u0639\u0636\u0627\u06CC \u062D\u0627\u0636\u0631 \u062F\u0631 \u0641\u0636\u0627\u06CC \u06A9\u0627\u0631 \u0627\u0634\u062A\u0631\u0627\u06A9\u06CC</h3>
+        <button onclick="promptCheckIn()" class="px-4 py-2 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded-xl text-xs font-bold transition">
+          + \u062B\u0628\u062A \u062D\u0636\u0648\u0631 \u062F\u0631 \u0635\u0646\u062F\u0644\u06CC
+        </button>
+      </div>
+      <div id="members-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+        <!-- Rendered via JS -->
+      </div>
+    </div>
+
+    <!-- TAB: AMENITIES -->
+    <div id="tab-amenities" class="tab-pane hidden">
+      <h3 class="text-sm font-bold text-white mb-4">\u0648\u0636\u0639\u06CC\u062A \u0627\u0645\u06A9\u0627\u0646\u0627\u062A \u0648 \u0641\u0636\u0627\u0647\u0627\u06CC \u0627\u0634\u062A\u0631\u0627\u06A9\u06CC</h3>
+      <div id="amenities-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+        <!-- Rendered via JS -->
+      </div>
+    </div>
+
+    <!-- TAB: STATUS -->
+    <div id="tab-status" class="tab-pane hidden">
+      <div class="max-w-2xl mx-auto bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
+        <h3 class="text-base font-bold text-white">\u0627\u0637\u0644\u0627\u0639\u0627\u062A \u0648\u0636\u0639\u06CC\u062A \u0648 \u0639\u06CC\u0628\u200C\u06CC\u0627\u0628\u06CC \u0633\u0631\u0648\u0631</h3>
+        <div class="space-y-2 text-xs">
+          <div class="flex justify-between p-2.5 bg-slate-950 rounded-lg">
+            <span class="text-slate-400">\u0648\u0636\u0639\u06CC\u062A \u0633\u0631\u0648\u06CC\u0633 Node.js:</span>
+            <span class="text-emerald-400 font-bold">\u0641\u0639\u0627\u0644 (Active)</span>
+          </div>
+          <div class="flex justify-between p-2.5 bg-slate-950 rounded-lg">
+            <span class="text-slate-400">\u067E\u0648\u0631\u062A \u0641\u0639\u0627\u0644:</span>
+            <span class="text-white font-mono">3000</span>
+          </div>
+          <div class="flex justify-between p-2.5 bg-slate-950 rounded-lg">
+            <span class="text-slate-400">\u062D\u0627\u0644\u062A \u0627\u062C\u0631\u0627:</span>
+            <span class="text-amber-400 font-bold">\u067E\u0631\u062A\u0627\u0644 \u0645\u0633\u062A\u0642\u0644 \u0641\u0648\u0642\u200C\u0633\u0631\u06CC\u0639 (\u0633\u0627\u0632\u06AF\u0627\u0631 \u0628\u0627 \u0647\u0645\u0647 \u067E\u0631\u062F\u0627\u0632\u0646\u062F\u0647\u200C\u0647\u0627 \u062D\u062A\u06CC Phenom)</span>
+          </div>
+          <div class="flex justify-between p-2.5 bg-slate-950 rounded-lg">
+            <span class="text-slate-400">\u062F\u06CC\u062A\u0627\u0628\u06CC\u0633 \u0645\u062D\u0644\u06CC JSON:</span>
+            <span class="text-white font-mono">/opt/hamkarhub/data/coworking_db.json</span>
+          </div>
+        </div>
+
+        <div class="mt-4 pt-4 border-t border-slate-800">
+          <a href="/api/download/ubuntu-package" class="inline-flex items-center gap-2 px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-bold transition">
+            \u{1F4E5} \u062F\u0627\u0646\u0644\u0648\u062F \u0641\u0627\u06CC\u0644 \u0632\u06CC\u067E \u06A9\u0627\u0645\u0644 \u0633\u0648\u0631\u0633 \u0648 \u0641\u0631\u0627\u0646\u062A\u200C\u0627\u0646\u062F (hamkarhub-ubuntu-package.zip)
+          </a>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    let currentTab = 'hotspot';
+    let myName = localStorage.getItem('hamkarhub_user') || '\u06A9\u0627\u0631\u0628\u0631 \u0645\u0647\u0645\u0627\u0646 ' + Math.floor(Math.random() * 900 + 100);
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-pane').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('.tab-btn').forEach(el => {
+        el.classList.remove('border-b-2', 'border-amber-500', 'text-amber-400');
+        el.classList.add('text-slate-400');
+      });
+      const target = document.getElementById('tab-' + tabId);
+      const btn = document.getElementById('tab-btn-' + tabId);
+      if (target) target.classList.remove('hidden');
+      if (btn) {
+        btn.classList.add('border-b-2', 'border-amber-500', 'text-amber-400');
+        btn.classList.remove('text-slate-400');
+      }
+      currentTab = tabId;
+      if (tabId === 'chat') loadChat();
+      if (tabId === 'members') loadMembers();
+      if (tabId === 'amenities') loadAmenities();
+    }
+
+    async function loadChat() {
+      try {
+        const res = await fetch('/api/chat/messages');
+        const data = await res.json();
+        const container = document.getElementById('chat-messages');
+        if (!data || data.length === 0) {
+          container.innerHTML = '<div class="text-center text-xs text-slate-500 my-4">\u0647\u0646\u0648\u0632 \u067E\u06CC\u0627\u0645\u06CC \u0627\u0631\u0633\u0627\u0644 \u0646\u0634\u062F\u0647 \u0627\u0633\u062A. \u0627\u0648\u0644\u06CC\u0646 \u067E\u06CC\u0627\u0645 \u0631\u0627 \u0634\u0645\u0627 \u0628\u0641\u0631\u0633\u062A\u06CC\u062F!</div>';
+          return;
+        }
+        container.innerHTML = data.map(m => \`
+          <div class="p-3 bg-slate-950/70 border border-slate-800/80 rounded-xl space-y-1">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-amber-400">\${m.sender?.name || '\u0647\u0645\u06A9\u0627\u0631'}</span>
+              <span class="text-[10px] text-slate-500">\${new Date(m.timestamp).toLocaleTimeString('fa-IR')}</span>
+            </div>
+            <p class="text-xs text-slate-200 leading-relaxed">\${m.text}</p>
+          </div>
+        \`).join('');
+        container.scrollTop = container.scrollHeight;
+      } catch (e) {
+        console.error('Chat error:', e);
+      }
+    }
+
+    async function handleSendMessage(e) {
+      e.preventDefault();
+      const input = document.getElementById('chat-input');
+      const text = input.value.trim();
+      if (!text) return;
+      input.value = '';
+      try {
+        await fetch('/api/chat/messages', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            text,
+            channelId: 'general',
+            sender: { id: 'u-' + Date.now(), name: myName, role: '\u0639\u0636\u0648 \u0647\u0645\u06A9\u0627\u0631' }
+          })
+        });
+        loadChat();
+      } catch (err) {
+        alert('\u062E\u0637\u0627 \u062F\u0631 \u0627\u0631\u0633\u0627\u0644 \u067E\u06CC\u0627\u0645');
+      }
+    }
+
+    async function loadMembers() {
+      try {
+        const res = await fetch('/api/members');
+        const data = await res.json();
+        const grid = document.getElementById('members-grid');
+        grid.innerHTML = data.map(m => \`
+          <div class="p-4 bg-slate-900 border border-slate-800 rounded-2xl flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center text-base font-bold text-amber-400">
+              \${(m.name || '\u0639')[0]}
+            </div>
+            <div class="flex-1 min-w-0">
+              <h4 class="text-xs font-bold text-white truncate">\${m.name}</h4>
+              <p class="text-[11px] text-slate-400 truncate">\${m.role || '\u0639\u0636\u0648 \u0641\u0636\u0627\u06CC \u06A9\u0627\u0631'}</p>
+              <div class="flex items-center gap-2 mt-1 text-[10px] text-amber-400/80">
+                <span>\u{1F4CD} \${m.desk || '\u0633\u0627\u0644\u0646 \u0627\u0635\u0644\u06CC'}</span>
+              </div>
+            </div>
+          </div>
+        \`).join('');
+      } catch (e) {
+        console.error('Members error:', e);
+      }
+    }
+
+    async function promptCheckIn() {
+      const name = prompt('\u0646\u0627\u0645 \u0648 \u0646\u0627\u0645 \u062E\u0627\u0646\u0648\u0627\u062F\u06AF\u06CC \u062E\u0648\u062F \u0631\u0627 \u0648\u0627\u0631\u062F \u06A9\u0646\u06CC\u062F:', myName);
+      if (!name) return;
+      myName = name;
+      localStorage.setItem('hamkarhub_user', name);
+      const desk = prompt('\u0645\u06CC\u0632 \u06CC\u0627 \u0645\u062D\u0644 \u0627\u0633\u062A\u0642\u0631\u0627\u0631 \u062E\u0648\u062F \u0631\u0627 \u0648\u0627\u0631\u062F \u06A9\u0646\u06CC\u062F (\u0645\u062B\u0627\u0644: \u0645\u06CC\u0632 \u06F1\u06F2 \u0633\u0627\u0644\u0646 \u0628\u0627\u0632):', '\u0645\u06CC\u0632 \u0627\u0634\u062A\u0631\u0627\u06A9\u06CC');
+      const role = prompt('\u062A\u062E\u0635\u0635 \u06CC\u0627 \u0639\u0646\u0648\u0627\u0646 \u0634\u063A\u0644\u06CC (\u0645\u062B\u0627\u0644: \u0628\u0631\u0646\u0627\u0645\u0647\u200C\u0646\u0648\u06CC\u0633 React):', '\u062A\u0648\u0633\u0639\u0647\u200C\u062F\u0647\u0646\u062F\u0647');
+      try {
+        await fetch('/api/members/checkin', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, desk, role, status: 'available' })
+        });
+        loadMembers();
+      } catch (e) {
+        alert('\u062E\u0637\u0627 \u062F\u0631 \u062B\u0628\u062A \u062D\u0636\u0648\u0631');
+      }
+    }
+
+    async function loadAmenities() {
+      try {
+        const res = await fetch('/api/amenities');
+        const data = await res.json();
+        const grid = document.getElementById('amenities-grid');
+        grid.innerHTML = data.map(a => \`
+          <div class="p-4 bg-slate-900 border border-slate-800 rounded-2xl space-y-2">
+            <div class="flex items-center justify-between">
+              <h4 class="text-xs font-bold text-white">\${a.name}</h4>
+              <span class="text-[10px] px-2 py-0.5 rounded-full \${a.status === 'free' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-rose-500/20 text-rose-400'}">
+                \${a.status === 'free' ? '\u0622\u0632\u0627\u062F' : '\u0645\u0634\u063A\u0648\u0644'}
+              </span>
+            </div>
+            <p class="text-[11px] text-slate-400">\${a.location || '\u0641\u0636\u0627\u06CC \u06A9\u0627\u0631'}</p>
+          </div>
+        \`).join('');
+      } catch (e) {
+        console.error('Amenities error:', e);
+      }
+    }
+
+    setInterval(() => {
+      if (currentTab === 'chat') loadChat();
+    }, 4000);
+  </script>
+</body>
+</html>`;
+}
 async function startServer() {
   const server = http.createServer(app);
   if (!isProd) {
@@ -1523,10 +2263,18 @@ async function startServer() {
     app.use(vite.middlewares);
   } else {
     const distPath = path.join(__dirname, "dist");
-    app.use(express.static(distPath));
-    app.get("*", (req, res) => {
-      res.sendFile(path.join(distPath, "index.html"));
-    });
+    const indexPath = path.join(distPath, "index.html");
+    if (fs.existsSync(indexPath)) {
+      app.use(express.static(distPath));
+      app.get("*", (req, res) => {
+        res.sendFile(indexPath);
+      });
+    } else {
+      app.get("*", (req, res) => {
+        res.setHeader("Content-Type", "text/html; charset=utf-8");
+        res.send(renderFallbackPortal());
+      });
+    }
   }
   server.listen(PORT, "0.0.0.0", () => {
     console.log(`HamkarHub Coworking Chat & MikroTik Captive Portal running at http://0.0.0.0:${PORT}`);

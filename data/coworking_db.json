@@ -264,7 +264,10 @@
       "bytesOut": 1850000000,
       "limitBytesTotal": 11811160064,
       "uptime": "14h 22m",
-      "comment": "عضو ماهانه - میز ۱۴"
+      "comment": "عضو ماهانه - میز ۱۴",
+      "maxSharedUsers": 2,
+      "password": "newPass2025",
+      "activeDevicesCount": 1
     },
     {
       "id": "user-maryam",
@@ -274,7 +277,10 @@
       "bytesOut": 3220000000,
       "limitBytesTotal": 16106127360,
       "uptime": "22h 10m",
-      "comment": "طراح محصول - میز ۲۱"
+      "comment": "طراح محصول - میز ۲۱",
+      "maxSharedUsers": 2,
+      "password": "123456",
+      "activeDevicesCount": 1
     },
     {
       "id": "user-reza",
@@ -284,7 +290,10 @@
       "bytesOut": 980000000,
       "limitBytesTotal": 10737418240,
       "uptime": "8h 45m",
-      "comment": "سئو مارکتینگ - میز ۸"
+      "comment": "سئو مارکتینگ - میز ۸",
+      "maxSharedUsers": 2,
+      "password": "123456",
+      "activeDevicesCount": 0
     },
     {
       "id": "user-guest1",
@@ -294,7 +303,10 @@
       "bytesOut": 480000000,
       "limitBytesTotal": 3221225472,
       "uptime": "2h 15m",
-      "comment": "ووچر روزانه مهمان"
+      "comment": "ووچر روزانه مهمان",
+      "maxSharedUsers": 2,
+      "password": "123456",
+      "activeDevicesCount": 0
     }
   ],
   "hotspotActive": [
@@ -317,6 +329,157 @@
       "bytesIn": 88000000,
       "bytesOut": 920000000,
       "timeLeft": "نامحدود"
+    }
+  ],
+  "appContent": {
+    "hubTitle": "همکار هاب | پرتال محلی فضای کار اشتراکی",
+    "hubSubtitle": "اینترنت پایدار، شبکه اجتماعی همکاران و سیستم رفاهی یکپارچه",
+    "welcomeNotice": "به شبکه وای‌فای و پرتال ارتباطی فضای کار اشتراکی خوش آمدید!",
+    "portalDescription": "با اکانت اشتراک خود به اینترنت متصل شوید یا بدون نیاز به اینترنت، با همکاران مستقر در فضا گفتگو کنید و از کافه سفارش دهید.",
+    "wifiRules": "۱. استفاده از تورنت و دانلود غیرمنصفانه در ساعات اوج ممنوع است. ۲. برای جلسات صوتی از فون‌باکس استفاده شود. ۳. رعایت حریم خصوصی الزامی است.",
+    "phoneContact": "۰۲۱-۸۸۹۹۰۰۱۱",
+    "locationAddress": "خیابان ولیعصر، تقاطع فاطمی، پلاک ۱۲، طبقه ۳"
+  },
+  "cafeMenu": [
+    {
+      "id": "cafe-1",
+      "name": "اسپرسو دوبل تخصصی",
+      "category": "coffee",
+      "price": 45000,
+      "description": "دان قهوه ۱۰۰٪ عربیکا تخصصی با کرمای غلیظ و ماندگار",
+      "icon": "Coffee",
+      "prepMinutes": 4,
+      "isAvailable": true
+    },
+    {
+      "id": "cafe-2",
+      "name": "آمریکانو کلاسیک",
+      "category": "coffee",
+      "price": 50000,
+      "description": "ترکیب دو شات اسپرسو و آب جوش فیلتر شده، پرکافئین و متعادل",
+      "icon": "Coffee",
+      "prepMinutes": 4,
+      "isAvailable": true
+    },
+    {
+      "id": "cafe-3",
+      "name": "کافه لاته با شیر گرم",
+      "category": "coffee",
+      "price": 65000,
+      "description": "اسپرسو همراه با شیر تازه با فوم ابریشمی و لاته آرت زیبا",
+      "icon": "Coffee",
+      "prepMinutes": 6,
+      "isAvailable": true
+    },
+    {
+      "id": "cafe-4",
+      "name": "کاپوچینو ایتالیایی",
+      "category": "coffee",
+      "price": 65000,
+      "description": "طعم کلاسیک با فوم شیر غلیظ و پودر دارچین/کاکائو مرغوب",
+      "icon": "Coffee",
+      "prepMinutes": 6,
+      "isAvailable": true
+    },
+    {
+      "id": "cafe-5",
+      "name": "قهوه دمی V60 تک‌خاستگاه",
+      "category": "coffee",
+      "price": 85000,
+      "description": "عصاره‌گیری دستی با فیلتر کاغذی، طعم‌یادهای گلی و میوه‌ای",
+      "icon": "Coffee",
+      "prepMinutes": 8,
+      "isAvailable": true
+    },
+    {
+      "id": "cafe-6",
+      "name": "قهوه عصاره سرد (Cold Brew)",
+      "category": "cold",
+      "price": 75000,
+      "description": "عصاره‌گیری ۱۶ ساعته با آب یخ، اسیدیته بسیار پایین و کافئین انرژی‌بخش",
+      "icon": "CupSoda",
+      "prepMinutes": 2,
+      "isAvailable": true
+    },
+    {
+      "id": "cafe-7",
+      "name": "آیس لاته با سیروپ وانیل",
+      "category": "cold",
+      "price": 75000,
+      "description": "شیر سرد، یخ بلوری، اسپرسو تازه و سیروپ طبیعی وانیل ماداگاسکار",
+      "icon": "CupSoda",
+      "prepMinutes": 4,
+      "isAvailable": true
+    },
+    {
+      "id": "cafe-8",
+      "name": "لیموناد نعناع طبیعی (موخیتو)",
+      "category": "cold",
+      "price": 60000,
+      "description": "آب لیموی تازه، برگ‌های نعناع کوبیده شده و سودای گازدار خنک",
+      "icon": "CupSoda",
+      "prepMinutes": 5,
+      "isAvailable": true
+    },
+    {
+      "id": "cafe-9",
+      "name": "کروسان فرانسوی تازه پخت",
+      "category": "dessert",
+      "price": 55000,
+      "description": "لایه‌لایه کره‌ای، برشته در بیرون و نرم در داخل (سرو گرم)",
+      "icon": "Croissant",
+      "prepMinutes": 3,
+      "isAvailable": true
+    },
+    {
+      "id": "cafe-10",
+      "name": "چیزکیک نیویورکی تنوری",
+      "category": "dessert",
+      "price": 95000,
+      "description": "بافت خامه‌ای غنی با کراست بیسکویتی و سس تمشک ترش و شیرین",
+      "icon": "Cake",
+      "prepMinutes": 1,
+      "isAvailable": true
+    },
+    {
+      "id": "cafe-11",
+      "name": "ساندویچ مرغ و سس پستو (پانینی)",
+      "category": "snack",
+      "price": 145000,
+      "description": "فیله مرغ گریل شده، سس پستو ریحان، پنیر موزارلا کش‌دار در نان چاباتا",
+      "icon": "UtensilsCrossed",
+      "prepMinutes": 12,
+      "isAvailable": true
+    },
+    {
+      "id": "cafe-12",
+      "name": "کلاب ساندویچ بیکن بوقلمون و پنیر",
+      "category": "snack",
+      "price": 135000,
+      "description": "سه لایه نان تست تست‌شده، بیکن بوقلمون دودی، پنیر گودا و کاهو فرانسوی",
+      "icon": "UtensilsCrossed",
+      "prepMinutes": 10,
+      "isAvailable": true
+    }
+  ],
+  "cafeOrders": [
+    {
+      "id": "order-1794494968166",
+      "orderNumber": 101,
+      "customerName": "ali_ahmadi",
+      "desk": "میز ۱۴",
+      "items": [
+        {
+          "menuItemId": "cafe-1",
+          "name": "اسپرسو دوبل",
+          "price": 45000,
+          "quantity": 2
+        }
+      ],
+      "totalAmount": 90000,
+      "note": "کم شیرین",
+      "status": "pending",
+      "createdAt": 1794494968166
     }
   ]
 }

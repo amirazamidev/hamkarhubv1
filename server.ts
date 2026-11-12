@@ -122,6 +122,10 @@ export interface HotspotUserAccount {
   uptime: string;
   comment?: string;
   disabled?: boolean;
+  maxSharedUsers?: number;
+  activeDevicesCount?: number;
+  rateLimit?: string;
+  expirationDate?: string;
 }
 
 export interface HotspotActiveUser {
@@ -135,12 +139,55 @@ export interface HotspotActiveUser {
   timeLeft?: string;
 }
 
+export interface CafeMenuItem {
+  id: string;
+  name: string;
+  category: 'coffee' | 'cold' | 'dessert' | 'snack';
+  price: number; // Toman
+  description: string;
+  icon: string;
+  prepMinutes: number;
+  isAvailable: boolean;
+}
+
+export interface CafeOrderItem {
+  menuItemId: string;
+  name: string;
+  price: number;
+  quantity: number;
+}
+
+export interface CafeOrder {
+  id: string;
+  orderNumber: number;
+  customerName: string;
+  desk: string;
+  items: CafeOrderItem[];
+  totalAmount: number;
+  note?: string;
+  status: 'pending' | 'preparing' | 'ready' | 'delivered' | 'cancelled';
+  createdAt: number;
+}
+
+export interface AppContentConfig {
+  hubTitle: string;
+  hubSubtitle: string;
+  welcomeNotice: string;
+  portalDescription: string;
+  wifiRules: string;
+  phoneContact: string;
+  locationAddress: string;
+}
+
 interface DBState {
   config: HotspotConfig;
+  appContent: AppContentConfig;
   channels: Channel[];
   messages: ChatMessage[];
   members: Member[];
   amenities: SpaceAmenity[];
+  cafeMenu: CafeMenuItem[];
+  cafeOrders: CafeOrder[];
   notices: Array<{
     id: string;
     title: string;
@@ -155,6 +202,139 @@ interface DBState {
   hotspotActive: HotspotActiveUser[];
 }
 
+const DEFAULT_CAFE_MENU: CafeMenuItem[] = [
+  {
+    id: 'cafe-1',
+    name: 'اسپرسو دوبل تخصصی',
+    category: 'coffee',
+    price: 45000,
+    description: 'دان قهوه ۱۰۰٪ عربیکا تخصصی با کرمای غلیظ و ماندگار',
+    icon: 'Coffee',
+    prepMinutes: 4,
+    isAvailable: true,
+  },
+  {
+    id: 'cafe-2',
+    name: 'آمریکانو کلاسیک',
+    category: 'coffee',
+    price: 50000,
+    description: 'ترکیب دو شات اسپرسو و آب جوش فیلتر شده، پرکافئین و متعادل',
+    icon: 'Coffee',
+    prepMinutes: 4,
+    isAvailable: true,
+  },
+  {
+    id: 'cafe-3',
+    name: 'کافه لاته با شیر گرم',
+    category: 'coffee',
+    price: 65000,
+    description: 'اسپرسو همراه با شیر تازه با فوم ابریشمی و لاته آرت زیبا',
+    icon: 'Coffee',
+    prepMinutes: 6,
+    isAvailable: true,
+  },
+  {
+    id: 'cafe-4',
+    name: 'کاپوچینو ایتالیایی',
+    category: 'coffee',
+    price: 65000,
+    description: 'طعم کلاسیک با فوم شیر غلیظ و پودر دارچین/کاکائو مرغوب',
+    icon: 'Coffee',
+    prepMinutes: 6,
+    isAvailable: true,
+  },
+  {
+    id: 'cafe-5',
+    name: 'قهوه دمی V60 تک‌خاستگاه',
+    category: 'coffee',
+    price: 85000,
+    description: 'عصاره‌گیری دستی با فیلتر کاغذی، طعم‌یادهای گلی و میوه‌ای',
+    icon: 'Coffee',
+    prepMinutes: 8,
+    isAvailable: true,
+  },
+  {
+    id: 'cafe-6',
+    name: 'قهوه عصاره سرد (Cold Brew)',
+    category: 'cold',
+    price: 75000,
+    description: 'عصاره‌گیری ۱۶ ساعته با آب یخ، اسیدیته بسیار پایین و کافئین انرژی‌بخش',
+    icon: 'CupSoda',
+    prepMinutes: 2,
+    isAvailable: true,
+  },
+  {
+    id: 'cafe-7',
+    name: 'آیس لاته با سیروپ وانیل',
+    category: 'cold',
+    price: 75000,
+    description: 'شیر سرد، یخ بلوری، اسپرسو تازه و سیروپ طبیعی وانیل ماداگاسکار',
+    icon: 'CupSoda',
+    prepMinutes: 4,
+    isAvailable: true,
+  },
+  {
+    id: 'cafe-8',
+    name: 'لیموناد نعناع طبیعی (موخیتو)',
+    category: 'cold',
+    price: 60000,
+    description: 'آب لیموی تازه، برگ‌های نعناع کوبیده شده و سودای گازدار خنک',
+    icon: 'CupSoda',
+    prepMinutes: 5,
+    isAvailable: true,
+  },
+  {
+    id: 'cafe-9',
+    name: 'کروسان فرانسوی تازه پخت',
+    category: 'dessert',
+    price: 55000,
+    description: 'لایه‌لایه کره‌ای، برشته در بیرون و نرم در داخل (سرو گرم)',
+    icon: 'Croissant',
+    prepMinutes: 3,
+    isAvailable: true,
+  },
+  {
+    id: 'cafe-10',
+    name: 'چیزکیک نیویورکی تنوری',
+    category: 'dessert',
+    price: 95000,
+    description: 'بافت خامه‌ای غنی با کراست بیسکویتی و سس تمشک ترش و شیرین',
+    icon: 'Cake',
+    prepMinutes: 1,
+    isAvailable: true,
+  },
+  {
+    id: 'cafe-11',
+    name: 'ساندویچ مرغ و سس پستو (پانینی)',
+    category: 'snack',
+    price: 145000,
+    description: 'فیله مرغ گریل شده، سس پستو ریحان، پنیر موزارلا کش‌دار در نان چاباتا',
+    icon: 'UtensilsCrossed',
+    prepMinutes: 12,
+    isAvailable: true,
+  },
+  {
+    id: 'cafe-12',
+    name: 'کلاب ساندویچ بیکن بوقلمون و پنیر',
+    category: 'snack',
+    price: 135000,
+    description: 'سه لایه نان تست تست‌شده، بیکن بوقلمون دودی، پنیر گودا و کاهو فرانسوی',
+    icon: 'UtensilsCrossed',
+    prepMinutes: 10,
+    isAvailable: true,
+  },
+];
+
+const DEFAULT_APP_CONTENT: AppContentConfig = {
+  hubTitle: 'همکار هاب | پرتال محلی فضای کار اشتراکی',
+  hubSubtitle: 'اینترنت پایدار، شبکه اجتماعی همکاران و سیستم رفاهی یکپارچه',
+  welcomeNotice: 'به شبکه وای‌فای و پرتال ارتباطی فضای کار اشتراکی خوش آمدید!',
+  portalDescription: 'با اکانت اشتراک خود به اینترنت متصل شوید یا بدون نیاز به اینترنت، با همکاران مستقر در فضا گفتگو کنید و از کافه سفارش دهید.',
+  wifiRules: '۱. استفاده از تورنت و دانلود غیرمنصفانه در ساعات اوج ممنوع است. ۲. برای جلسات صوتی از فون‌باکس استفاده شود. ۳. رعایت حریم خصوصی الزامی است.',
+  phoneContact: '۰۲۱-۸۸۹۹۰۰۱۱',
+  locationAddress: 'خیابان ولیعصر، تقاطع فاطمی، پلاک ۱۲، طبقه ۳',
+};
+
 // Initial seed data
 const DEFAULT_DB: DBState = {
   config: {
@@ -168,6 +348,9 @@ const DEFAULT_DB: DBState = {
     walledGardenDomain: 'hub.local',
     welcomeNotice: 'به اینترنت و شبکه اختصاصی فضای کار اشتراکی خوش آمدید!',
   },
+  appContent: DEFAULT_APP_CONTENT,
+  cafeMenu: DEFAULT_CAFE_MENU,
+  cafeOrders: [],
   channels: [
     {
       id: 'general',
@@ -447,10 +630,23 @@ function readDb(): DBState {
     if (fs.existsSync(DB_FILE)) {
       const data = fs.readFileSync(DB_FILE, 'utf-8');
       const parsed = JSON.parse(data);
+      if (!parsed.appContent) parsed.appContent = DEFAULT_DB.appContent;
+      if (!parsed.cafeMenu || !Array.isArray(parsed.cafeMenu)) parsed.cafeMenu = DEFAULT_CAFE_MENU;
+      if (!parsed.cafeOrders || !Array.isArray(parsed.cafeOrders)) parsed.cafeOrders = [];
       if (!parsed.cafeteria) parsed.cafeteria = DEFAULT_DB.cafeteria;
       if (!parsed.staff || !Array.isArray(parsed.staff)) parsed.staff = DEFAULT_DB.staff;
       if (!parsed.hotspotUsers || !Array.isArray(parsed.hotspotUsers)) parsed.hotspotUsers = DEFAULT_DB.hotspotUsers;
       if (!parsed.hotspotActive || !Array.isArray(parsed.hotspotActive)) parsed.hotspotActive = DEFAULT_DB.hotspotActive;
+
+      // Update active device count dynamically for each user
+      for (const u of parsed.hotspotUsers) {
+        if (!u.maxSharedUsers) u.maxSharedUsers = 2;
+        if (!u.password) u.password = '123456';
+        u.activeDevicesCount = (parsed.hotspotActive || []).filter(
+          (a: any) => a.user && a.user.toLowerCase() === u.name.toLowerCase()
+        ).length;
+      }
+
       return parsed;
     }
   } catch (err) {
@@ -1151,6 +1347,344 @@ app.delete('/api/mikrotik/users/:id', async (req: Request, res: Response) => {
   res.json({ success: true });
 });
 
+// Full Edit Hotspot User (Admin)
+app.put('/api/mikrotik/users/:id', async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const { name, password, profile, limitBytesTotal, maxSharedUsers, disabled, comment, rateLimit } = req.body;
+  const db = readDb();
+  const user = db.hotspotUsers.find((u) => u.id === id || u.name === id);
+  if (!user) return res.status(404).json({ error: 'کاربر هات‌اسپات یافت نشد' });
+
+  if (name) user.name = name.trim();
+  if (password !== undefined) user.password = password;
+  if (profile) user.profile = profile;
+  if (limitBytesTotal !== undefined) user.limitBytesTotal = Number(limitBytesTotal);
+  if (maxSharedUsers !== undefined) user.maxSharedUsers = Math.max(1, Number(maxSharedUsers));
+  if (disabled !== undefined) user.disabled = Boolean(disabled);
+  if (comment !== undefined) user.comment = comment;
+  if (rateLimit !== undefined) user.rateLimit = rateLimit;
+
+  let updatedOnRouter = false;
+  try {
+    const patchBody: any = {
+      name: user.name,
+      profile: user.profile,
+      comment: user.comment,
+      disabled: user.disabled ? 'true' : 'false',
+    };
+    if (user.password) patchBody.password = user.password;
+    if (user.limitBytesTotal > 0) patchBody['limit-bytes-total'] = user.limitBytesTotal;
+    await callMikrotikRest(db.config, `/ip/hotspot/user/${encodeURIComponent(user.id)}`, 'PATCH', patchBody);
+    updatedOnRouter = true;
+  } catch {
+    // Local DB fallback
+  }
+
+  saveDb(db);
+  broadcast('hotspot_users_updated', db.hotspotUsers);
+  res.json({ success: true, updatedOnRouter, user });
+});
+
+// Reset Traffic for Hotspot User
+app.post('/api/mikrotik/users/:id/reset-traffic', async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const db = readDb();
+  const user = db.hotspotUsers.find((u) => u.id === id || u.name === id);
+  if (!user) return res.status(404).json({ error: 'کاربر هات‌اسپات یافت نشد' });
+
+  user.bytesIn = 0;
+  user.bytesOut = 0;
+  user.uptime = '0s';
+
+  try {
+    await callMikrotikRest(db.config, `/ip/hotspot/user/reset-counters`, 'POST', {
+      numbers: user.name,
+    });
+  } catch {
+    // Router fallback
+  }
+
+  saveDb(db);
+  broadcast('hotspot_users_updated', db.hotspotUsers);
+  res.json({ success: true, message: 'شمارنده ترافیک مصرفی کاربر صفر شد', user });
+});
+
+// User Self-Service Account Info
+app.get('/api/user/account', (req: Request, res: Response) => {
+  const username = String(req.query.username || '').trim();
+  if (!username) return res.status(400).json({ error: 'نام کاربری مشخص نشده است' });
+
+  const db = readDb();
+  const user = db.hotspotUsers.find(
+    (u) => u.name.toLowerCase() === username.toLowerCase() || u.id === username
+  );
+
+  const activeSessions = db.hotspotActive.filter(
+    (a) => a.user && a.user.toLowerCase() === username.toLowerCase()
+  );
+
+  const totalBytesIn = (user ? user.bytesIn : 0) + activeSessions.reduce((acc, s) => acc + s.bytesIn, 0);
+  const totalBytesOut = (user ? user.bytesOut : 0) + activeSessions.reduce((acc, s) => acc + s.bytesOut, 0);
+  const totalBytesUsed = totalBytesIn + totalBytesOut;
+  const limitBytes = user ? user.limitBytesTotal : 0;
+  const remainingBytes = limitBytes > 0 ? Math.max(0, limitBytes - totalBytesUsed) : null;
+  const maxDevices = user?.maxSharedUsers || 2;
+
+  res.json({
+    username,
+    profile: user?.profile || 'standard-user',
+    isConnected: activeSessions.length > 0,
+    bytesIn: totalBytesIn,
+    bytesOut: totalBytesOut,
+    totalBytesUsed,
+    limitBytesTotal: limitBytes,
+    remainingBytes,
+    activeDevicesCount: activeSessions.length,
+    maxSharedUsers: maxDevices,
+    activeDevices: activeSessions.map((s) => ({
+      id: s.id,
+      address: s.address,
+      macAddress: s.macAddress,
+      uptime: s.uptime,
+    })),
+    uptime: activeSessions[0]?.uptime || user?.uptime || '0s',
+    comment: user?.comment || 'عضو فضای کار',
+  });
+});
+
+// User Self-Service Change Password
+app.post('/api/user/change-password', async (req: Request, res: Response) => {
+  const { username, oldPassword, newPassword } = req.body;
+  if (!username || !newPassword) {
+    return res.status(400).json({ error: 'نام کاربری و رمز عبور جدید الزامی هستند' });
+  }
+  if (String(newPassword).length < 4) {
+    return res.status(400).json({ error: 'رمز عبور جدید باید حداقل ۴ کاراکتر باشد' });
+  }
+
+  const db = readDb();
+  let user: HotspotUserAccount | undefined = db.hotspotUsers.find(
+    (u) => u.name.toLowerCase() === username.trim().toLowerCase()
+  );
+
+  if (!user) {
+    // If user account is not yet saved in local db, create it
+    const newUser: HotspotUserAccount = {
+      id: `user-${Date.now()}`,
+      name: username.trim(),
+      password: newPassword,
+      profile: 'coworker-standard',
+      bytesIn: 0,
+      bytesOut: 0,
+      limitBytesTotal: 10737418240, // 10 GB
+      uptime: '0s',
+      comment: 'عضو خودثبت‌نامی',
+      maxSharedUsers: 2,
+    };
+    db.hotspotUsers.push(newUser);
+    user = newUser;
+  } else {
+    // Validate old password if user already has a set password and provided oldPassword
+    if (user.password && oldPassword && user.password !== oldPassword) {
+      return res.status(403).json({ error: 'کلمه عبور قبلی نادرست است' });
+    }
+    user.password = newPassword;
+  }
+
+  let updatedOnRouter = false;
+  try {
+    await callMikrotikRest(db.config, `/ip/hotspot/user/${encodeURIComponent(user.id)}`, 'PATCH', {
+      password: newPassword,
+    });
+    updatedOnRouter = true;
+  } catch {
+    // Router offline
+  }
+
+  saveDb(db);
+  broadcast('hotspot_users_updated', db.hotspotUsers);
+  res.json({
+    success: true,
+    message: 'کلمه عبور شما با موفقیت تغییر کرد و در روتر ثبت شد.',
+    updatedOnRouter,
+  });
+});
+
+// --- CAFE MENU & ORDERING SYSTEM ROUTES ---
+
+// Get Cafe Menu
+app.get('/api/cafe/menu', (req: Request, res: Response) => {
+  const db = readDb();
+  res.json(db.cafeMenu || DEFAULT_CAFE_MENU);
+});
+
+// Admin: Add Cafe Menu Item
+app.post('/api/admin/cafe/menu', (req: Request, res: Response) => {
+  const { name, category, price, description, icon, prepMinutes, isAvailable } = req.body;
+  if (!name || !price) {
+    return res.status(400).json({ error: 'نام و قیمت آیتم منو الزامی است' });
+  }
+  const db = readDb();
+  const newItem: CafeMenuItem = {
+    id: `item-${Date.now()}`,
+    name: name.trim(),
+    category: category || 'coffee',
+    price: Number(price),
+    description: description || '',
+    icon: icon || 'Coffee',
+    prepMinutes: Number(prepMinutes) || 5,
+    isAvailable: isAvailable !== undefined ? Boolean(isAvailable) : true,
+  };
+  db.cafeMenu.push(newItem);
+  saveDb(db);
+  broadcast('cafe_menu_updated', db.cafeMenu);
+  res.status(201).json(newItem);
+});
+
+// Admin: Edit Cafe Menu Item
+app.put('/api/admin/cafe/menu/:id', (req: Request, res: Response) => {
+  const { id } = req.params;
+  const { name, category, price, description, icon, prepMinutes, isAvailable } = req.body;
+  const db = readDb();
+  const item = db.cafeMenu.find((m) => m.id === id);
+  if (!item) return res.status(404).json({ error: 'آیتم منو یافت نشد' });
+
+  if (name) item.name = name.trim();
+  if (category) item.category = category;
+  if (price !== undefined) item.price = Number(price);
+  if (description !== undefined) item.description = description;
+  if (icon) item.icon = icon;
+  if (prepMinutes !== undefined) item.prepMinutes = Number(prepMinutes);
+  if (isAvailable !== undefined) item.isAvailable = Boolean(isAvailable);
+
+  saveDb(db);
+  broadcast('cafe_menu_updated', db.cafeMenu);
+  res.json(item);
+});
+
+// Admin: Delete Cafe Menu Item
+app.delete('/api/admin/cafe/menu/:id', (req: Request, res: Response) => {
+  const { id } = req.params;
+  const db = readDb();
+  db.cafeMenu = db.cafeMenu.filter((m) => m.id !== id);
+  saveDb(db);
+  broadcast('cafe_menu_updated', db.cafeMenu);
+  res.json({ success: true });
+});
+
+// Get Cafe Orders
+app.get('/api/cafe/orders', (req: Request, res: Response) => {
+  const db = readDb();
+  const customerName = req.query.customer ? String(req.query.customer).trim().toLowerCase() : null;
+  let orders = [...(db.cafeOrders || [])];
+  if (customerName) {
+    orders = orders.filter((o) => o.customerName && o.customerName.toLowerCase() === customerName);
+  }
+  // Sort newest first
+  orders.sort((a, b) => b.createdAt - a.createdAt);
+  res.json(orders);
+});
+
+// Submit New Cafe Order
+app.post('/api/cafe/orders', (req: Request, res: Response) => {
+  const { customerName, desk, items, note } = req.body;
+  if (!customerName || !items || !Array.isArray(items) || items.length === 0) {
+    return res.status(400).json({ error: 'اطلاعات سفارش و اقلام انتخاب‌شده ناقص است' });
+  }
+
+  const db = readDb();
+  const nextNumber =
+    db.cafeOrders && db.cafeOrders.length > 0
+      ? Math.max(...db.cafeOrders.map((o) => o.orderNumber || 100)) + 1
+      : 101;
+
+  const totalAmount = items.reduce(
+    (sum: number, it: any) => sum + (Number(it.price) || 0) * (Number(it.quantity) || 1),
+    0
+  );
+
+  const newOrder: CafeOrder = {
+    id: `order-${Date.now()}`,
+    orderNumber: nextNumber,
+    customerName: customerName.trim(),
+    desk: desk ? desk.trim() : 'میز آزاد / سالن اصلی',
+    items: items.map((it: any) => ({
+      menuItemId: it.menuItemId || it.id,
+      name: it.name,
+      price: Number(it.price),
+      quantity: Number(it.quantity) || 1,
+    })),
+    totalAmount,
+    note: note ? note.trim() : '',
+    status: 'pending',
+    createdAt: Date.now(),
+  };
+
+  db.cafeOrders.push(newOrder);
+  saveDb(db);
+  broadcast('cafe_order_created', newOrder);
+  res.status(201).json({ success: true, order: newOrder });
+});
+
+// Admin: Update Cafe Order Status
+app.patch('/api/admin/cafe/orders/:id/status', (req: Request, res: Response) => {
+  const { id } = req.params;
+  const { status } = req.body;
+  const db = readDb();
+  const order = db.cafeOrders.find((o) => o.id === id);
+  if (!order) return res.status(404).json({ error: 'سفارش یافت نشد' });
+
+  const validStatuses = ['pending', 'preparing', 'ready', 'delivered', 'cancelled'];
+  if (!validStatuses.includes(status)) {
+    return res.status(400).json({ error: 'وضعیت نامعتبر است' });
+  }
+
+  order.status = status;
+  saveDb(db);
+  broadcast('cafe_order_updated', order);
+  res.json({ success: true, order });
+});
+
+// --- APP CONTENT CUSTOMIZATION (ADMIN) ---
+
+// Get App Content
+app.get('/api/admin/app-content', (req: Request, res: Response) => {
+  const db = readDb();
+  res.json(db.appContent || DEFAULT_APP_CONTENT);
+});
+
+// Update App Content
+app.post('/api/admin/app-content', (req: Request, res: Response) => {
+  const db = readDb();
+  db.appContent = { ...(db.appContent || DEFAULT_APP_CONTENT), ...req.body };
+  saveDb(db);
+  broadcast('app_content_updated', db.appContent);
+  res.json({ success: true, appContent: db.appContent });
+});
+
+// Admin Clear Mock Data
+app.post('/api/admin/clear-mock-data', (req: Request, res: Response) => {
+  const { clearType } = req.body;
+  const db = readDb();
+
+  if (clearType === 'messages' || clearType === 'all') {
+    db.messages = [];
+  }
+  if (clearType === 'members' || clearType === 'all') {
+    db.members = [];
+  }
+  if (clearType === 'notices' || clearType === 'all') {
+    db.notices = [];
+  }
+  if (clearType === 'orders' || clearType === 'all') {
+    db.cafeOrders = [];
+  }
+
+  saveDb(db);
+  broadcast('db_cleared', { clearType });
+  res.json({ success: true, message: 'محتواهای نمونه با موفقیت پاک شدند' });
+});
+
 // Get Active Live Hotspot Users
 app.get('/api/mikrotik/active', async (req: Request, res: Response) => {
   const db = readDb();
@@ -1784,6 +2318,329 @@ add address=${db.config.serverLocalIp} name="${db.config.walledGardenDomain}" co
   });
 });
 
+function renderFallbackPortal(): string {
+  const db = readDb();
+  return `<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>همکار هاب | پرتال محلی فضای کار اشتراکی و میکروتیک</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: 'Vazirmatn', sans-serif; }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen">
+  <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold text-xl border border-amber-500/30">
+          ⚡
+        </div>
+        <div>
+          <h1 class="text-base font-bold text-white">${db.config.hotspotName || 'همکار هاب'}</h1>
+          <p class="text-xs text-slate-400">پرتال محلی فضای کار اشتراکی و وای‌فای میکروتیک</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          سرور فعال روی پورت ۳۰۰۰
+        </span>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-4 py-6">
+    <!-- TABS -->
+    <div class="flex flex-wrap border-b border-slate-800 gap-2 mb-6 text-sm font-semibold">
+      <button onclick="switchTab('hotspot')" id="tab-btn-hotspot" class="tab-btn px-4 py-2.5 border-b-2 border-amber-500 text-amber-400">
+        📶 ورود به اینترنت و وای‌فای
+      </button>
+      <button onclick="switchTab('chat')" id="tab-btn-chat" class="tab-btn px-4 py-2.5 text-slate-400 hover:text-slate-200">
+        💬 چت محلی همکاران
+      </button>
+      <button onclick="switchTab('members')" id="tab-btn-members" class="tab-btn px-4 py-2.5 text-slate-400 hover:text-slate-200">
+        👥 اعضای حاضر و صندلی‌ها
+      </button>
+      <button onclick="switchTab('amenities')" id="tab-btn-amenities" class="tab-btn px-4 py-2.5 text-slate-400 hover:text-slate-200">
+        ☕ امکانات فضای کار
+      </button>
+      <button onclick="switchTab('status')" id="tab-btn-status" class="tab-btn px-4 py-2.5 text-slate-400 hover:text-slate-200">
+        ⚙️ وضعیت سرور و ادمین
+      </button>
+    </div>
+
+    <!-- TAB: HOTSPOT -->
+    <div id="tab-hotspot" class="tab-pane">
+      <div class="max-w-md mx-auto bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
+        <div class="text-center mb-6">
+          <div class="w-14 h-14 mx-auto rounded-2xl bg-amber-500/10 text-amber-400 flex items-center justify-center text-3xl mb-3 border border-amber-500/20">
+            📶
+          </div>
+          <h2 class="text-lg font-bold text-white">ورود به شبکه وای‌فای میکروتیک</h2>
+          <p class="text-xs text-slate-400 mt-1">نام کاربری و رمز اشتراک خود را برای اتصال به اینترنت وارد کنید</p>
+        </div>
+
+        <form method="post" action="http://192.168.88.1/login" id="hotspot-form" class="space-y-4">
+          <div>
+            <label class="block text-xs font-medium text-slate-300 mb-1.5">نام کاربری (کد عضویت یا شماره تلفن)</label>
+            <input type="text" name="username" required placeholder="مثال: amir یا شماره تماس" class="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:border-amber-500">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-300 mb-1.5">کلمه عبور</label>
+            <input type="password" name="password" required placeholder="کلمه عبور اینترنت" class="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:border-amber-500">
+          </div>
+          <input type="hidden" name="dst" value="http://${db.config.serverLocalIp || '192.168.30.20'}:3000/">
+          
+          <button type="submit" class="w-full py-3 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-sm rounded-xl transition shadow-lg shadow-amber-500/20">
+            اتصال به اینترنت
+          </button>
+        </form>
+
+        <div class="mt-6 pt-5 border-t border-slate-800 text-center">
+          <button onclick="switchTab('chat')" class="text-xs text-amber-400 hover:underline">
+            ← ورود مستقیم به چت محلی همکاران (بدون نیاز به اینترنت)
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: CHAT -->
+    <div id="tab-chat" class="tab-pane hidden">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div class="md:col-span-1 bg-slate-900 border border-slate-800 rounded-2xl p-4">
+          <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">کانال‌های گفتگو</h3>
+          <div class="space-y-1" id="chat-channels-list">
+            <button class="w-full text-right px-3 py-2 rounded-xl bg-amber-500/10 text-amber-400 font-semibold text-xs border border-amber-500/20">
+              # عمومی (General)
+            </button>
+          </div>
+          <div class="mt-6 pt-4 border-t border-slate-800">
+            <p class="text-xs text-slate-400">تمام پیام‌ها به صورت زنده در شبکه محلی ذخیره می‌شوند.</p>
+          </div>
+        </div>
+
+        <div class="md:col-span-3 bg-slate-900 border border-slate-800 rounded-2xl flex flex-col h-[520px]">
+          <div class="p-3.5 border-b border-slate-800 flex items-center justify-between">
+            <span class="text-xs font-bold text-white flex items-center gap-2">
+              <span class="text-amber-400">#</span> کانال عمومی همکاران
+            </span>
+            <span class="text-xs text-emerald-400" id="chat-online-count">اتصال فعال</span>
+          </div>
+
+          <div id="chat-messages" class="flex-1 p-4 overflow-y-auto space-y-3">
+            <div class="text-center text-xs text-slate-500 my-4">در حال دریافت پیام‌ها...</div>
+          </div>
+
+          <form id="chat-form" onsubmit="handleSendMessage(event)" class="p-3 border-t border-slate-800 flex gap-2">
+            <input type="text" id="chat-input" placeholder="پیام خود را بنویسید..." required class="flex-1 px-4 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:border-amber-500">
+            <button type="submit" class="px-5 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-sm rounded-xl transition">
+              ارسال
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: MEMBERS -->
+    <div id="tab-members" class="tab-pane hidden">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-sm font-bold text-white">اعضای حاضر در فضای کار اشتراکی</h3>
+        <button onclick="promptCheckIn()" class="px-4 py-2 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded-xl text-xs font-bold transition">
+          + ثبت حضور در صندلی
+        </button>
+      </div>
+      <div id="members-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+        <!-- Rendered via JS -->
+      </div>
+    </div>
+
+    <!-- TAB: AMENITIES -->
+    <div id="tab-amenities" class="tab-pane hidden">
+      <h3 class="text-sm font-bold text-white mb-4">وضعیت امکانات و فضاهای اشتراکی</h3>
+      <div id="amenities-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+        <!-- Rendered via JS -->
+      </div>
+    </div>
+
+    <!-- TAB: STATUS -->
+    <div id="tab-status" class="tab-pane hidden">
+      <div class="max-w-2xl mx-auto bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
+        <h3 class="text-base font-bold text-white">اطلاعات وضعیت و عیب‌یابی سرور</h3>
+        <div class="space-y-2 text-xs">
+          <div class="flex justify-between p-2.5 bg-slate-950 rounded-lg">
+            <span class="text-slate-400">وضعیت سرویس Node.js:</span>
+            <span class="text-emerald-400 font-bold">فعال (Active)</span>
+          </div>
+          <div class="flex justify-between p-2.5 bg-slate-950 rounded-lg">
+            <span class="text-slate-400">پورت فعال:</span>
+            <span class="text-white font-mono">3000</span>
+          </div>
+          <div class="flex justify-between p-2.5 bg-slate-950 rounded-lg">
+            <span class="text-slate-400">حالت اجرا:</span>
+            <span class="text-amber-400 font-bold">پرتال مستقل فوق‌سریع (سازگار با همه پردازنده‌ها حتی Phenom)</span>
+          </div>
+          <div class="flex justify-between p-2.5 bg-slate-950 rounded-lg">
+            <span class="text-slate-400">دیتابیس محلی JSON:</span>
+            <span class="text-white font-mono">/opt/hamkarhub/data/coworking_db.json</span>
+          </div>
+        </div>
+
+        <div class="mt-4 pt-4 border-t border-slate-800">
+          <a href="/api/download/ubuntu-package" class="inline-flex items-center gap-2 px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-bold transition">
+            📥 دانلود فایل زیپ کامل سورس و فرانت‌اند (hamkarhub-ubuntu-package.zip)
+          </a>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    let currentTab = 'hotspot';
+    let myName = localStorage.getItem('hamkarhub_user') || 'کاربر مهمان ' + Math.floor(Math.random() * 900 + 100);
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-pane').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('.tab-btn').forEach(el => {
+        el.classList.remove('border-b-2', 'border-amber-500', 'text-amber-400');
+        el.classList.add('text-slate-400');
+      });
+      const target = document.getElementById('tab-' + tabId);
+      const btn = document.getElementById('tab-btn-' + tabId);
+      if (target) target.classList.remove('hidden');
+      if (btn) {
+        btn.classList.add('border-b-2', 'border-amber-500', 'text-amber-400');
+        btn.classList.remove('text-slate-400');
+      }
+      currentTab = tabId;
+      if (tabId === 'chat') loadChat();
+      if (tabId === 'members') loadMembers();
+      if (tabId === 'amenities') loadAmenities();
+    }
+
+    async function loadChat() {
+      try {
+        const res = await fetch('/api/chat/messages');
+        const data = await res.json();
+        const container = document.getElementById('chat-messages');
+        if (!data || data.length === 0) {
+          container.innerHTML = '<div class="text-center text-xs text-slate-500 my-4">هنوز پیامی ارسال نشده است. اولین پیام را شما بفرستید!</div>';
+          return;
+        }
+        container.innerHTML = data.map(m => \`
+          <div class="p-3 bg-slate-950/70 border border-slate-800/80 rounded-xl space-y-1">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-amber-400">\${m.sender?.name || 'همکار'}</span>
+              <span class="text-[10px] text-slate-500">\${new Date(m.timestamp).toLocaleTimeString('fa-IR')}</span>
+            </div>
+            <p class="text-xs text-slate-200 leading-relaxed">\${m.text}</p>
+          </div>
+        \`).join('');
+        container.scrollTop = container.scrollHeight;
+      } catch (e) {
+        console.error('Chat error:', e);
+      }
+    }
+
+    async function handleSendMessage(e) {
+      e.preventDefault();
+      const input = document.getElementById('chat-input');
+      const text = input.value.trim();
+      if (!text) return;
+      input.value = '';
+      try {
+        await fetch('/api/chat/messages', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            text,
+            channelId: 'general',
+            sender: { id: 'u-' + Date.now(), name: myName, role: 'عضو همکار' }
+          })
+        });
+        loadChat();
+      } catch (err) {
+        alert('خطا در ارسال پیام');
+      }
+    }
+
+    async function loadMembers() {
+      try {
+        const res = await fetch('/api/members');
+        const data = await res.json();
+        const grid = document.getElementById('members-grid');
+        grid.innerHTML = data.map(m => \`
+          <div class="p-4 bg-slate-900 border border-slate-800 rounded-2xl flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center text-base font-bold text-amber-400">
+              \${(m.name || 'ع')[0]}
+            </div>
+            <div class="flex-1 min-w-0">
+              <h4 class="text-xs font-bold text-white truncate">\${m.name}</h4>
+              <p class="text-[11px] text-slate-400 truncate">\${m.role || 'عضو فضای کار'}</p>
+              <div class="flex items-center gap-2 mt-1 text-[10px] text-amber-400/80">
+                <span>📍 \${m.desk || 'سالن اصلی'}</span>
+              </div>
+            </div>
+          </div>
+        \`).join('');
+      } catch (e) {
+        console.error('Members error:', e);
+      }
+    }
+
+    async function promptCheckIn() {
+      const name = prompt('نام و نام خانوادگی خود را وارد کنید:', myName);
+      if (!name) return;
+      myName = name;
+      localStorage.setItem('hamkarhub_user', name);
+      const desk = prompt('میز یا محل استقرار خود را وارد کنید (مثال: میز ۱۲ سالن باز):', 'میز اشتراکی');
+      const role = prompt('تخصص یا عنوان شغلی (مثال: برنامه‌نویس React):', 'توسعه‌دهنده');
+      try {
+        await fetch('/api/members/checkin', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, desk, role, status: 'available' })
+        });
+        loadMembers();
+      } catch (e) {
+        alert('خطا در ثبت حضور');
+      }
+    }
+
+    async function loadAmenities() {
+      try {
+        const res = await fetch('/api/amenities');
+        const data = await res.json();
+        const grid = document.getElementById('amenities-grid');
+        grid.innerHTML = data.map(a => \`
+          <div class="p-4 bg-slate-900 border border-slate-800 rounded-2xl space-y-2">
+            <div class="flex items-center justify-between">
+              <h4 class="text-xs font-bold text-white">\${a.name}</h4>
+              <span class="text-[10px] px-2 py-0.5 rounded-full \${a.status === 'free' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-rose-500/20 text-rose-400'}">
+                \${a.status === 'free' ? 'آزاد' : 'مشغول'}
+              </span>
+            </div>
+            <p class="text-[11px] text-slate-400">\${a.location || 'فضای کار'}</p>
+          </div>
+        \`).join('');
+      } catch (e) {
+        console.error('Amenities error:', e);
+      }
+    }
+
+    setInterval(() => {
+      if (currentTab === 'chat') loadChat();
+    }, 4000);
+  </script>
+</body>
+</html>`;
+}
+
 // Serve frontend assets in dev or prod
 async function startServer() {
   const server = http.createServer(app);
@@ -1802,10 +2659,18 @@ async function startServer() {
     app.use(vite.middlewares);
   } else {
     const distPath = path.join(__dirname, 'dist');
-    app.use(express.static(distPath));
-    app.get('*', (req: Request, res: Response) => {
-      res.sendFile(path.join(distPath, 'index.html'));
-    });
+    const indexPath = path.join(distPath, 'index.html');
+    if (fs.existsSync(indexPath)) {
+      app.use(express.static(distPath));
+      app.get('*', (req: Request, res: Response) => {
+        res.sendFile(indexPath);
+      });
+    } else {
+      app.get('*', (req: Request, res: Response) => {
+        res.setHeader('Content-Type', 'text/html; charset=utf-8');
+        res.send(renderFallbackPortal());
+      });
+    }
   }
 
   server.listen(PORT, '0.0.0.0', () => {

@@ -45,16 +45,20 @@ if [ "$CPU_IS_LEGACY" -eq 1 ]; then
     echo "ℹ️ این مدل پردازنده (مانند AMD Phenom) فاقد دستورالعمل‌های AVX/SSE4.2 است."
     if [ -f "./dist/index.html" ] && [ -f "./server.js" ]; then
         echo "✅ فایل‌های بیلد آماده و سازگار در دایرکتوری پروژه موجود است."
-        echo "🚀 عبور خودکار از کامپایل محلی برای جلوگیری از خطای Illegal instruction."
     else
-        echo "🔨 تلاش برای کامپایل پروژه..."
-        npm run build || true
+        echo "⚙️ در حال کامپایل server.js سازگار با پردازنده توسط tsc..."
+        npx tsc server.ts --ignoreConfig --target es2022 --module esnext --moduleResolution bundler --skipLibCheck --allowJs --outDir . || true
     fi
 else
     echo "🔨 در حال کامپایل پروژه..."
     if ! npm run build; then
-        echo "⚠️ استفاده از بیلد موجود..."
+        echo "⚠️ کامپایل با خطا مواجه شد؛ در حال تولید server.js با tsc..."
+        npx tsc server.ts --ignoreConfig --target es2022 --module esnext --moduleResolution bundler --skipLibCheck --allowJs --outDir . || true
     fi
+fi
+
+if [ ! -f "$CURRENT_DIR/server.js" ]; then
+    npx tsc server.ts --ignoreConfig --target es2022 --module esnext --moduleResolution bundler --skipLibCheck --allowJs --outDir . || true
 fi
 
 # ۵. باز کردن پورت ۳۰۰۰ در فایروال اوبونتو (UFW)
@@ -69,11 +73,7 @@ echo "⚙️ در حال پیکربندی سرویس daemon در systemd با ک
 
 sudo chown -R "$SERVICE_USER:$SERVICE_USER" "$CURRENT_DIR" || true
 
-if [ -f "$CURRENT_DIR/server.js" ]; then
-    EXEC_START_CMD="$NODE_EXEC $CURRENT_DIR/server.js"
-else
-    EXEC_START_CMD="$NODE_EXEC $CURRENT_DIR/node_modules/tsx/dist/cli.mjs server.ts"
-fi
+EXEC_START_CMD="$NODE_EXEC $CURRENT_DIR/server.js"
 
 sudo bash -c "cat <<EOF > /etc/systemd/system/hamkarhub.service
 [Unit]

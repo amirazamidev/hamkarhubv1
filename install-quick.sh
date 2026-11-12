@@ -111,25 +111,23 @@ if [ "$CPU_IS_LEGACY" -eq 1 ]; then
     echo "⚡ پردازنده سرور شناسایی شد: $CPU_MODEL"
     echo "ℹ️ این مدل پردازنده فاقد دستورالعمل‌های جدید AVX/SSE4.2 است."
     if [ -f "./dist/index.html" ] && [ -f "./server.js" ]; then
-        echo "✅ بیلد از قبل آماده شده فرانت‌اند و بک‌اند سازگار در پروژه موجود است."
-        echo "🚀 عبور خودکار از کامپایل محلی برای جلوگیری از خطای Illegal instruction."
+        echo "✅ فایل‌های بیلد آماده و سازگار در دایرکتوری پروژه موجود است."
     else
-        echo "🔨 تلاش برای بیلد پروژه..."
-        npm run build || {
-            echo "⚠️ کامپایل با خطا مواجه شد؛ در حال استفاده از بیلد موجود..."
-        }
+        echo "⚙️ در حال تولید server.js سازگار با پردازنده توسط tsc..."
+        npx tsc server.ts --ignoreConfig --target es2022 --module esnext --moduleResolution bundler --skipLibCheck --allowJs --outDir . || true
     fi
 else
     echo "🔨 در حال ساخت بیلد نهایی پروژه (npm run build)..."
     if ! npm run build; then
-        echo "⚠️ کامپایل محلی با خطا مواجه شد."
-        if [ -f "./dist/index.html" ] && [ -f "./server.js" ]; then
-            echo "✅ بیلد آماده فرانت‌اند یافت شد و فعال گردید."
-        else
-            echo "❌ فایل‌های بیلد یافت نشدند."
-            exit 1
-        fi
+        echo "⚠️ کامپایل محلی با خطا مواجه شد. در حال تولید server.js با tsc..."
+        npx tsc server.ts --ignoreConfig --target es2022 --module esnext --moduleResolution bundler --skipLibCheck --allowJs --outDir . || true
     fi
+fi
+
+# تضمین وجود server.js قبل از تنظیم سرویس
+if [ ! -f "$TARGET_DIR/server.js" ]; then
+    echo "⚙️ کامپایل نهایی server.js..."
+    npx tsc server.ts --ignoreConfig --target es2022 --module esnext --moduleResolution bundler --skipLibCheck --allowJs --outDir . || true
 fi
 
 # ۵. پیکربندی فایروال و سرویس daemon دائمی systemd
@@ -142,12 +140,8 @@ if [ -z "$RUN_USER" ]; then
     RUN_USER=$(whoami)
 fi
 
-# تعیین دستور اجرا: اجرای مستقیم Node.js با فایل کامپایل‌شده server.js (بدون سربار و کاملاً سازگار با همه CPUها)
-if [ -f "$TARGET_DIR/server.js" ]; then
-    EXEC_START_CMD="$NODE_PATH $TARGET_DIR/server.js"
-else
-    EXEC_START_CMD="$NODE_PATH $TARGET_DIR/node_modules/tsx/dist/cli.mjs server.ts"
-fi
+# تعیین دستور اجرا: اجرای مستقیم Node.js با فایل کامپایل‌شده server.js (بدون وابستگی به esbuild یا tsx)
+EXEC_START_CMD="$NODE_PATH $TARGET_DIR/server.js"
 
 $SUDO bash -c "cat <<EOF > /etc/systemd/system/hamkarhub.service
 [Unit]
